@@ -1,2 +1,183 @@
-# verbose-potato
-REST API for library management, designed as a learning project to demonstrate the application of Hexagonal Architecture (Ports &amp; Adapters) in a modern backend system.
+# Verbose Potato
+
+**Verbose Potato** is a REST API for library management, developed as a practice project to apply Hexagonal Architecture (Ports & Adapters).
+
+The application allows for user registration, book catalog management, and the handling of loans and returns, while implementing business rules such as tracking copy availability, preventing duplicate loans, and limiting the number of active loans per user.
+
+The project prioritizes code organization, the separation of concerns, and the application of design patterns over the sheer number of features.
+
+---
+
+## Table of Contents
+
+- [Technologies](#technologies)
+- [Quick Start](#quick-start)
+    - [Clone the repository](#clone-the-repository)
+    - [Configure environment variables](#configure-environment-variables)
+    - [Run with Docker](#run-with-docker)
+- [Documentation](#documentation)
+- [API Endpoints](#api-endpoints)
+- [Future Improvements](#future-improvements)
+- [License](#license)
+
+---
+
+## Technologies
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![REST API](https://img.shields.io/badge/REST_API-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-CC2927?style=for-the-badge&logo=python&logoColor=white)
+![Alembic](https://img.shields.io/badge/Alembic-3D3D3D?style=for-the-badge&logo=alembic&logoColor=white)
+![PyJWT](https://img.shields.io/badge/PyJWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Ruff](https://img.shields.io/badge/Ruff-000000?style=for-the-badge&logo=ruff&logoColor=white)
+![mypy](https://img.shields.io/badge/mypy-233564?style=for-the-badge&logo=mypy&logoColor=white)
+![Makefile](https://img.shields.io/badge/Makefile-000000?style=for-the-badge&logo=gnu&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![Structlog](https://img.shields.io/badge/Structlog-000000?style=for-the-badge&logo=logstash&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-000000?style=for-the-badge&logo=github&logoColor=white)
+![PyTest](https://img.shields.io/badge/PyTest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
+![Monolith](https://img.shields.io/badge/Monolith-6C63FF?style=for-the-badge)
+![Hexagonal Architecture](https://img.shields.io/badge/Hexagonal-FFB300?style=for-the-badge)
+
+---
+
+## Quick Start
+
+### Clone the repository
+
+```bash
+git clone git@github.com:JohannGaviria/verbose-potato.git
+cd verbose-potato
+```
+
+### Configure environment variables
+
+Copy the example file:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description | Example |
+|----------|-------------|----------|
+| `APP_NAME` | Application name. | `Verbose Potato` |
+| `APP_SUMMARY` | Short summary of the application. | `REST API for library management` |
+| `APP_DESCRIPTION` | Detailed description of the application. | `Verbose Potato is a REST API for library management...` |
+| `APP_VERSION` | Current application version. | `0.0.0` |
+| `DEBUG` | Enables or disables debug mode. | `True` |
+| `ENVIRONMENT` | Application runtime environment. | `development` |
+| `BACKEND_PORT` | Port where the API is exposed. | `8000` |
+| `BACKEND_WORKERS` | Number of server worker processes. | `4` |
+| `CORS_ALLOW_ORIGINS` | Allowed origins for CORS requests. | `http://localhost:8000` |
+| `CORS_ALLOW_CREDENTIALS` | Allows credentials to be included in CORS requests. | `True` |
+| `POSTGRES_USER` | PostgreSQL username. | `postgres` |
+| `POSTGRES_PASSWORD` | PostgreSQL user password. | `password` |
+| `POSTGRES_DB` | PostgreSQL database name. | `verbose_potato` |
+| `POSTGRES_PORT` | PostgreSQL server port. | `5432` |
+| `DATABASE_URL` | Database connection string used by the application (SQLAlchemy Async). | `postgresql+asyncpg://...` |
+| `DATABASE_URL_ALEMBIC` | Database connection string used by Alembic for migrations. | `postgresql+psycopg2://...` |
+| `DB_POOL_SIZE` | Number of persistent connections maintained in the database connection pool. | `10` |
+| `DB_MAX_OVERFLOW` | Maximum number of additional connections allowed when the pool is exhausted. | `5` |
+| `DB_POOL_TIMEOUT` | Maximum time (in seconds) to wait for a connection from the pool. | `30` |
+| `DB_ECHO` | Enables SQL query logging generated by SQLAlchemy. | `false` |
+| `REDIS_URL` | Redis connection URL. | `redis://redis:6379/0` |
+| `REDIS_DB` | Redis database index. | `0` |
+| `REDIS_HOST` | Redis server host. | `redis` |
+| `REDIS_PASSWORD` | Redis server password. | `password` |
+| `REDIS_PORT` | Redis server port. | `6379` |
+| `REDIS_MAX_CONNECTIONS` | Maximum number of simultaneous Redis connections. | `20` |
+| `REDIS_DECODE_RESPONSES` | Whether Redis responses should be automatically decoded into strings. | `true` |
+
+Complete the necessary variables before starting the application.
+
+### Run with Docker
+
+**Prerequisites:**
+
+- [Docker](https://www.docker.com/)
+- [Docker compose](https://docs.docker.com/compose/)
+
+**Running the service with Docker**
+You can easily start the backend, database, and other services using Docker Compose:
+
+```bash
+docker compose --profile dev up --build # or: make up
+```
+
+Once the services are running, the API will be accessible at:
+
+[http://localhost:8000/docs](http://localhost:8000/docs) – this provides the interactive Swagger interface to test all endpoints.
+
+---
+
+## Documentation
+
+The project documentation is organized by topic.
+
+| Document | Description |
+| --- | --- |
+| [docs/requirements-specification.md](./docs/requirements_specification.md) | Functional requirements, user stories, and data models.
+| [docs/architecture.md](./docs/architecture.md) | Hexagonal Architecture, project organization, and design decisions.
+| [docs/development-guide.md](./docs/development_guide.md) | Environment setup, Docker, migrations, and development flow.
+| [docs/testing-strategy.md](./docs/testing_strategy.md) | Testing strategy and test organization.
+
+---
+
+## API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Authentication | Description |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/auth/register` | No | Register a new user |
+| `POST` | `/api/v1/auth/login` | No | Log in |
+
+### Books
+
+| Method | Endpoint | Role | Description |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/books` | `LIBRARIAN` | Register book |
+| `PATCH` | `/api/v1/books/{book_id}` | `LIBRARIAN` | Update book |
+| `DELETE` | `/api/v1/books/{book_id}` | `LIBRARIAN` | Delete book |
+| `GET` | `/api/v1/books` | `LIBRARIAN`, `MEMBER` | Consult catalog |
+
+### Loans
+
+| Method | Endpoint | Role | Description |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/loans` | `MEMBER` | Register loan |
+| `PATCH` | `/api/v1/loans/{loan_id}/return` | `MEMBER` | Register return |
+| `GET` | `/api/v1/loans/me` | `MEMBER` | Consult my loans |
+| `GET` | `/api/v1/loans` | `LIBRARIAN` | Consult all loans |
+
+### System
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/` | Welcome endpoint |
+| `GET` | `/health` | Health check endpoint |
+
+---
+
+## Future Improvements
+
+- Token renewal via Refresh Token.
+- Loan history.
+- Expiration notifications.
+- Fines for late returns.
+- Advanced catalog search.
+
+---
+
+## License
+
+Distributed under the **MIT License**. See [LICENSE](/LICENSE) for more details.
+
+---
+
+> Created with ♥️ by [JohannGaviria](https://github.com/JohannGaviria); always open to connect for feedback, collaboration, or to explore job opportunities.

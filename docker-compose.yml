@@ -1,0 +1,95 @@
+services:
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: verbose-potato-backend-dev
+    env_file:
+      - ./.env
+    volumes:
+      - ./src:/app/src
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - network
+    restart: unless-stopped
+    profiles: ["dev"]
+
+
+  backend-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: verbose-potato-backend-test
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - network
+    restart: unless-stopped
+    profiles: ["test"]
+
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: verbose-potato-postgres
+    env_file:
+      - ./.env
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    profiles: ["dev", "test"]
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: verbose-potato-redis
+    env_file:
+      - ./.env
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis_data:/data
+    networks:
+      - network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    profiles: ["dev", "test"]
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  network:
+    driver: bridge
