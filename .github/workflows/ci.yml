@@ -10,38 +10,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test-postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: test_verbose_potato
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U test-postgres -d test_verbose_potato"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --health-start-period 15s
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli -a password ping"
-          --health-interval 10s
-          --health-timeout 3s
-          --health-retries 5
-          --health-start-period 5s
-        command: redis-server --requirepass password
-
-    env:
-      DATABASE_URL: postgresql+asyncpg://test-postgres:password@localhost:5432/test_verbose_potato
-      REDIS_URL: redis://:password@localhost:6379/0
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,6 +26,9 @@ jobs:
 
       - name: Check code quality
         run: make check
+
+      - name: Copy environment variables
+        run: cp .env.example .env
 
       - name: Run tests with coverage
         run: make test-coverage

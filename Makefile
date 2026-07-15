@@ -67,7 +67,7 @@ test: build-test ## Run all tests
 	@echo "$(BLUE)Running complete test suite...$(NC)"
 	docker compose --profile test run --rm backend-test pytest tests
 
-test-unit: build-test ## Run unit tests
+test-unit: ## Run unit tests
 	@echo "$(BLUE)Running unit tests...$(NC)"
 	poetry run pytest tests/unit -v
 
