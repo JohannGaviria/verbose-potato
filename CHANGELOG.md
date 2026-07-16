@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.1.0...v1.2.0) (2026-07-16)
+
+
+### Features
+
+* **shared:** implement unit of work port and base persistence models ([c253a93](https://github.com/JohannGaviria/verbose-potato/commit/c253a93df7320225767b02de3e603c5ca480ff2a))
+
 # [1.1.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.0.0...v1.1.0) (2026-07-16)
 
 
