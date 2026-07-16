@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.2.0...v1.3.0) (2026-07-16)
+
+
+### Features
+
+* **api:** add presentation layer components and correlation middleware ([0fd230f](https://github.com/JohannGaviria/verbose-potato/commit/0fd230f5b535d877ad087529f732f67678aa64f2))
+
 # [1.2.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.1.0...v1.2.0) (2026-07-16)
 
 
