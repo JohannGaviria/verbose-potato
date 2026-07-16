@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.3.0...v1.4.0) (2026-07-16)
+
+
+### Features
+
+* **CD:** optimize semantic-release workflow and bump version ([a2efacb](https://github.com/JohannGaviria/verbose-potato/commit/a2efacb3d22fa2b26dbe585e3e946caf743ce30e))
+* **ci:** decouple release and image publishing workflows ([003eb44](https://github.com/JohannGaviria/verbose-potato/commit/003eb44a4b4dfe9549f60b1e35d49556d4b31d4c))
+
 # [1.3.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.2.0...v1.3.0) (2026-07-16)
 
 
