@@ -36,7 +36,7 @@ jobs:
 
       - name: Run semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: semantic-release
 
       - name: Checkout full history
