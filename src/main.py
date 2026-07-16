@@ -13,6 +13,9 @@ from src.shared.infrastructure.database.database import db
 from src.shared.infrastructure.logging.structlog_configure_logging import (
     StructlogConfigureLogging,
 )
+from src.shared.presentation.api.middleware.correlation_id_middleware import (
+    CorrelationIdMiddleware,
+)
 
 
 @asynccontextmanager
@@ -61,6 +64,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Includes the middleware for the API endpoints
+app.add_middleware(CorrelationIdMiddleware)
 
 
 @app.get(

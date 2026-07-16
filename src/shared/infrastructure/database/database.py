@@ -1,4 +1,4 @@
-"""This module contains the Database class."""
+"""This module contains the database class."""
 
 from __future__ import annotations
 
@@ -93,13 +93,3 @@ class Database:
 
 
 db = Database()
-
-
-async def get_db_session() -> AsyncIterator[AsyncSession]:
-    """Get a db session context manager.
-
-    Returns:
-        AsyncIterator[AsyncSession]: The db session context manager.
-    """
-    async with db.session() as session:
-        yield session

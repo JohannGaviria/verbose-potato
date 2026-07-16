@@ -1,4 +1,4 @@
-"""This module contains the RedisClient class."""
+"""This module contains the redis client class."""
 
 from __future__ import annotations
 
@@ -64,12 +64,3 @@ class RedisClient:
 
 
 redis_client = RedisClient()
-
-
-async def get_redis() -> Redis:
-    """Get a Redis client.
-
-    Returns:
-        Redis: The Redis client.
-    """
-    return redis_client.client
