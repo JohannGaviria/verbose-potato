@@ -1,0 +1,45 @@
+name: Publish Docker Image
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/verbose-potato
+
+permissions:
+  contents: read
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    env:
+      VERSION: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --target production \
+            -t $IMAGE_NAME:$VERSION \
+            -t $IMAGE_NAME:latest \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME:$VERSION
+          docker push $IMAGE_NAME:latest
