@@ -7,6 +7,8 @@ from alembic import context
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, pool
 
+from src.shared.infrastructure.persistence.models.base_model import Base
+
 
 load_dotenv()
 
@@ -34,7 +36,7 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL_ALEMBIC)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-# target_metadata = Base.metadata
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -56,7 +58,7 @@ def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
-        #target_metadata=target_metadata,
+        target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -79,7 +81,7 @@ def run_migrations_online() -> None:
     connectable = create_engine(DATABASE_URL_ALEMBIC, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
-        # context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
 
         with context.begin_transaction():
             context.run_migrations()
