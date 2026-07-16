@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.4.0...v1.5.0) (2026-07-16)
+
+
+### Features
+
+* **release:** bump version to 1.4.0 ([fdd652e](https://github.com/JohannGaviria/verbose-potato/commit/fdd652e48ac73a53408c9fef5b3ff3c839ee1914))
+
 # [1.4.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.3.0...v1.4.0) (2026-07-16)
 
 
