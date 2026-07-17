@@ -67,24 +67,50 @@ test: build-test ## Run all tests
 	@echo "$(BLUE)Running complete test suite...$(NC)"
 	docker compose --profile test run --rm backend-test pytest tests
 
-test-unit: ## Run unit tests
+test-unit: ## Run unit tests (no Docker/Postgres/Redis required)
 	@echo "$(BLUE)Running unit tests...$(NC)"
 	poetry run pytest tests/unit -v
 
 test-integration: build-test ## Run integration tests
 	@echo "$(BLUE)Running integration tests...$(NC)"
-	docker compose --profile test run --rm backend-test pytest tests/integrations -v
+	docker compose --profile test run --rm backend-test pytest tests/integration -v
+
+test-integration-no-db: ## Run integration tests that don't need Postgres/Redis
+	@echo "$(BLUE)Running infra-free integration tests...$(NC)"
+	poetry run pytest tests/integration -m "not db" -v
 
 test-e2e: build-test ## Run end-to-end tests
 	@echo "$(BLUE)Running end-to-end tests...$(NC)"
 	docker compose --profile test run --rm backend-test pytest tests/e2e -v
 
-test-coverage: build-test ## Run tests with coverage
+test-coverage: build-test ## Run all tests with a coverage report and enforce the threshold
 	@echo "$(BLUE)Running test suite with coverage...$(NC)"
 	docker compose --profile test run --rm backend-test \
 		pytest tests \
 		--cov=src \
 		--cov-report=term-missing \
+		--cov-fail-under=70
+
+test-coverage-unit: ## Collect coverage data from unit tests only
+	@echo "$(BLUE)Collecting unit test coverage...$(NC)"
+	COVERAGE_FILE=tests/.coverage.unit poetry run pytest tests/unit --cov=src --cov-report=
+
+test-coverage-integration: build-test ## Collect coverage data from integration tests only
+	@echo "$(BLUE)Collecting integration test coverage...$(NC)"
+	docker compose --profile test run --rm \
+		-e COVERAGE_FILE=tests/.coverage.integration \
+		backend-test pytest tests/integration --cov=src --cov-report=
+
+test-coverage-e2e: build-test ## Collect coverage data from e2e tests only
+	@echo "$(BLUE)Collecting e2e test coverage...$(NC)"
+	docker compose --profile test run --rm \
+		-e COVERAGE_FILE=tests/.coverage.e2e \
+		backend-test pytest tests/e2e --cov=src --cov-report=
+
+test-coverage-report: ## Combine collected coverage data (tests/.coverage.*) and enforce the threshold
+	@echo "$(BLUE)Combining coverage data and checking threshold...$(NC)"
+	poetry run coverage combine tests/
+	poetry run coverage report --show-missing --fail-under=70
 
 # --- Code Quality ---
 

@@ -7,7 +7,8 @@ on:
     branches: [develop, main]
 
 jobs:
-  build-and-test:
+  lint:
+    name: Lint & type-check
     runs-on: ubuntu-latest
 
     steps:
@@ -27,8 +28,118 @@ jobs:
       - name: Check code quality
         run: make check
 
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install --no-root --with test
+
+      # No Docker, no Postgres, no Redis: this is the whole point of unit tests.
+      - name: Run unit tests
+        run: make test-unit
+
+      - name: Collect unit test coverage
+        run: make test-coverage-unit
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-unit
+          path: tests/.coverage.unit
+          include-hidden-files: true
+          retention-days: 1
+
+  integration-tests:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Copy environment variables
         run: cp .env.example .env
 
-      - name: Run tests with coverage
-        run: make test-coverage
+      - name: Run integration tests
+        run: make test-integration
+
+      - name: Collect integration test coverage
+        run: make test-coverage-integration
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-integration
+          path: tests/.coverage.integration
+          include-hidden-files: true
+          retention-days: 1
+
+  e2e-tests:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy environment variables
+        run: cp .env.example .env
+
+      - name: Run e2e tests
+        run: make test-e2e
+
+      - name: Collect e2e test coverage
+        run: make test-coverage-e2e
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-e2e
+          path: tests/.coverage.e2e
+          include-hidden-files: true
+          retention-days: 1
+
+  coverage:
+    name: Coverage report
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [unit-tests, integration-tests, e2e-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install --no-root --with test
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-data-*
+          path: tests/
+          merge-multiple: true
+
+      - name: Combine coverage and enforce threshold
+        run: make test-coverage-report
