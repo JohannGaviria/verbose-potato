@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/JohannGaviria/verbose-potato/compare/v1.7.0...v1.7.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* add coverage configuration ([516699a](https://github.com/JohannGaviria/verbose-potato/commit/516699aaaeb0f9753bf16ecb30c0d277c68eedce))
+
 # [1.7.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.6.0...v1.7.0) (2026-07-17)
 
 
