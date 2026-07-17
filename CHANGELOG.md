@@ -1,3 +1,15 @@
+# [1.7.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.6.0...v1.7.0) (2026-07-17)
+
+
+### Bug Fixes
+
+* **CI:** update github plugin configuration in release workflow ([36d6841](https://github.com/JohannGaviria/verbose-potato/commit/36d6841a2371c74a16a9c897b53368a264f57095))
+
+
+### Features
+
+* **CI:** automate version synchronization via semantic-release ([8030c85](https://github.com/JohannGaviria/verbose-potato/commit/8030c852309498b3d4ac3537b061de80b4d0a529))
+
 # [1.6.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.5.0...v1.6.0) (2026-07-17)
 
 
