@@ -1,9 +1,16 @@
 """This module contains the application configuration settings."""
 
+import tomllib
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_PYPROJECT = Path(__file__).resolve().parent.parent / "pyproject.toml"
+
+with _PYPROJECT.open("rb") as f:
+    PROJECT_VERSION = tomllib.load(f)["project"]["version"]
 
 
 class Settings(BaseSettings):
@@ -15,7 +22,7 @@ class Settings(BaseSettings):
     APP_NAME: str = Field(..., validation_alias="APP_NAME")
     APP_SUMMARY: str = Field(..., validation_alias="APP_SUMMARY")
     APP_DESCRIPTION: str = Field(..., validation_alias="APP_DESCRIPTION")
-    APP_VERSION: str = Field(..., validation_alias="APP_VERSION")
+    APP_VERSION: str = PROJECT_VERSION
 
     # Backend configuration
     DEBUG: bool = Field(..., validation_alias="DEBUG")

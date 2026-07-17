@@ -4,11 +4,17 @@
     "plugins": [
         "@semantic-release/commit-analyzer",
         "@semantic-release/release-notes-generator",
+        [
+            "@semantic-release/exec",
+            {
+                "prepareCmd": "python3 scripts/update_version.py ${nextRelease.version}"
+            }
+        ],
         "@semantic-release/changelog",
         [
             "@semantic-release/git",
             {
-                "assets": ["CHANGELOG.md"],
+                "assets": ["CHANGELOG.md", "pyproject.toml"],
                 "message": "chore(release): v${nextRelease.version}"
             }
         ],

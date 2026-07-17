@@ -68,7 +68,6 @@ cp .env.example .env
 | `APP_NAME` | Application name. | `Verbose Potato` |
 | `APP_SUMMARY` | Short summary of the application. | `REST API for library management` |
 | `APP_DESCRIPTION` | Detailed description of the application. | `Verbose Potato is a REST API for library management...` |
-| `APP_VERSION` | Current application version. | `0.0.0` |
 | `DEBUG` | Enables or disables debug mode. | `True` |
 | `ENVIRONMENT` | Application runtime environment. | `development` |
 | `BACKEND_PORT` | Port where the API is exposed. | `8000` |
