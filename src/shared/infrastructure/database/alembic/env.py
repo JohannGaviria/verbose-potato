@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, pool
 
 from src.shared.infrastructure.persistence.models.base_model import Base
-
+from src.modules.auth.infrastructure.persistence.models.user_model import UserModel
 
 load_dotenv()
 
