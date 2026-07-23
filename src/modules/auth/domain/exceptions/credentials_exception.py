@@ -44,3 +44,16 @@ class InvalidPasswordHashException(BaseException):
         """
         self.error = error
         super().__init__("Invalid password hash provided.")
+
+
+class InvalidPlainPasswordException(BaseException):
+    """Exception raised when a plain password is invalid."""
+
+    def __init__(self, error: str) -> None:
+        """Initializes the InvalidPlainPasswordException.
+
+        Args:
+            error (str): Error message describing plain password validation failures.
+        """
+        self.error = error
+        super().__init__("Invalid plain password provided.")
