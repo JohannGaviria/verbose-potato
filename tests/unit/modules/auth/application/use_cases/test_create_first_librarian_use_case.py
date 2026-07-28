@@ -23,16 +23,20 @@ class TestCreateFirstLibrarianUseCase:
         faker: Faker,
         logger_factory_outbound_mock: Mock,
         password_hash_outbound_mock: Mock,
-        user_repository_mock: AsyncMock,
+        user_unit_of_work_mock: AsyncMock,
     ) -> None:
 
         name = faker.name()
         email = faker.email()
         password = faker.password(
-            length=16, special_chars=True, digits=True, upper_case=True, lower_case=True
+            length=16,
+            special_chars=True,
+            digits=True,
+            upper_case=True,
+            lower_case=True,
         )
 
-        user_repository_mock.exists_librarian.return_value = False
+        user_unit_of_work_mock.users.exists_librarian.return_value = False
         password_hash_outbound_mock.hash.return_value = "hashed-password"
 
         saved_user = Mock()
@@ -40,26 +44,30 @@ class TestCreateFirstLibrarianUseCase:
         saved_user.name.value = name
         saved_user.email.value = email
 
-        user_repository_mock.save.return_value = saved_user
+        user_unit_of_work_mock.users.save.return_value = saved_user
 
         use_case = CreateFirstLibrarianUseCase(
             logger_factory_outbound=logger_factory_outbound_mock,
             password_hash_outbound=password_hash_outbound_mock,
-            user_repository=user_repository_mock,
+            user_unit_of_work=user_unit_of_work_mock,
         )
 
         command = CreateFirstLibrarianCommandDto(
-            name=name, email=email, password=password
+            name=name,
+            email=email,
+            password=password,
         )
 
         await use_case.execute(command)
 
-        saved_entity = user_repository_mock.save.await_args.args[0]
+        saved_entity = user_unit_of_work_mock.users.save.await_args.args[0]
 
         assert saved_entity.name.value == name
         assert saved_entity.email.value == email
         assert saved_entity.password == "hashed-password"
         assert saved_entity.role == UserRoleEnum.LIBRARIAN
+
+        user_unit_of_work_mock.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_should_raise_librarian_already_exists_exception_when_a_librarian_already_exists(
@@ -67,15 +75,15 @@ class TestCreateFirstLibrarianUseCase:
         faker: Faker,
         logger_factory_outbound_mock: Mock,
         password_hash_outbound_mock: Mock,
-        user_repository_mock: AsyncMock,
+        user_unit_of_work_mock: AsyncMock,
     ) -> None:
 
-        user_repository_mock.exists_librarian.return_value = True
+        user_unit_of_work_mock.users.exists_librarian.return_value = True
 
         use_case = CreateFirstLibrarianUseCase(
             logger_factory_outbound=logger_factory_outbound_mock,
             password_hash_outbound=password_hash_outbound_mock,
-            user_repository=user_repository_mock,
+            user_unit_of_work=user_unit_of_work_mock,
         )
 
         command = CreateFirstLibrarianCommandDto(
@@ -93,9 +101,10 @@ class TestCreateFirstLibrarianUseCase:
         with pytest.raises(LibrarianAlreadyExistsException):
             await use_case.execute(command)
 
-        user_repository_mock.exists_librarian.assert_awaited_once()
+        user_unit_of_work_mock.users.exists_librarian.assert_awaited_once()
         password_hash_outbound_mock.hash.assert_not_called()
-        user_repository_mock.save.assert_not_awaited()
+        user_unit_of_work_mock.users.save.assert_not_awaited()
+        user_unit_of_work_mock.commit.assert_not_awaited()
 
     @pytest.mark.parametrize(
         "name",
@@ -112,13 +121,13 @@ class TestCreateFirstLibrarianUseCase:
         name: str,
         logger_factory_outbound_mock: Mock,
         password_hash_outbound_mock: Mock,
-        user_repository_mock: AsyncMock,
+        user_unit_of_work_mock: AsyncMock,
     ) -> None:
 
         use_case = CreateFirstLibrarianUseCase(
             logger_factory_outbound=logger_factory_outbound_mock,
             password_hash_outbound=password_hash_outbound_mock,
-            user_repository=user_repository_mock,
+            user_unit_of_work=user_unit_of_work_mock,
         )
 
         command = CreateFirstLibrarianCommandDto(
@@ -136,9 +145,10 @@ class TestCreateFirstLibrarianUseCase:
         with pytest.raises(BaseException):
             await use_case.execute(command)
 
-        user_repository_mock.exists_librarian.assert_not_awaited()
+        user_unit_of_work_mock.users.exists_librarian.assert_not_awaited()
         password_hash_outbound_mock.hash.assert_not_called()
-        user_repository_mock.save.assert_not_awaited()
+        user_unit_of_work_mock.users.save.assert_not_awaited()
+        user_unit_of_work_mock.commit.assert_not_awaited()
 
     @pytest.mark.parametrize(
         "email",
@@ -157,13 +167,13 @@ class TestCreateFirstLibrarianUseCase:
         email: str,
         logger_factory_outbound_mock: Mock,
         password_hash_outbound_mock: Mock,
-        user_repository_mock: AsyncMock,
+        user_unit_of_work_mock: AsyncMock,
     ) -> None:
 
         use_case = CreateFirstLibrarianUseCase(
             logger_factory_outbound=logger_factory_outbound_mock,
             password_hash_outbound=password_hash_outbound_mock,
-            user_repository=user_repository_mock,
+            user_unit_of_work=user_unit_of_work_mock,
         )
 
         command = CreateFirstLibrarianCommandDto(
@@ -181,9 +191,10 @@ class TestCreateFirstLibrarianUseCase:
         with pytest.raises(BaseException):
             await use_case.execute(command)
 
-        user_repository_mock.exists_librarian.assert_not_awaited()
+        user_unit_of_work_mock.users.exists_librarian.assert_not_awaited()
         password_hash_outbound_mock.hash.assert_not_called()
-        user_repository_mock.save.assert_not_awaited()
+        user_unit_of_work_mock.users.save.assert_not_awaited()
+        user_unit_of_work_mock.commit.assert_not_awaited()
 
     @pytest.mark.parametrize(
         "password",
@@ -203,13 +214,13 @@ class TestCreateFirstLibrarianUseCase:
         password: str,
         logger_factory_outbound_mock: Mock,
         password_hash_outbound_mock: Mock,
-        user_repository_mock: AsyncMock,
+        user_unit_of_work_mock: AsyncMock,
     ) -> None:
 
         use_case = CreateFirstLibrarianUseCase(
             logger_factory_outbound=logger_factory_outbound_mock,
             password_hash_outbound=password_hash_outbound_mock,
-            user_repository=user_repository_mock,
+            user_unit_of_work=user_unit_of_work_mock,
         )
 
         command = CreateFirstLibrarianCommandDto(
@@ -221,6 +232,7 @@ class TestCreateFirstLibrarianUseCase:
         with pytest.raises(BaseException):
             await use_case.execute(command)
 
-        user_repository_mock.exists_librarian.assert_not_awaited()
+        user_unit_of_work_mock.users.exists_librarian.assert_not_awaited()
         password_hash_outbound_mock.hash.assert_not_called()
-        user_repository_mock.save.assert_not_awaited()
+        user_unit_of_work_mock.users.save.assert_not_awaited()
+        user_unit_of_work_mock.commit.assert_not_awaited()

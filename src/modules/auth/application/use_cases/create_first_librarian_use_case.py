@@ -10,8 +10,8 @@ from src.modules.auth.domain.exceptions.user_exception import (
 from src.modules.auth.domain.ports.outbound.password_hash_outbound_port import (
     PasswordHashOutboundPort,
 )
-from src.modules.auth.domain.ports.repositories.user_repository_port import (
-    UserRepositoryPort,
+from src.modules.auth.domain.ports.unit_of_work.user_unit_of_work_port import (
+    UserUnitOfWorkPort,
 )
 from src.modules.auth.domain.value_objects.email_vo import EmailVO
 from src.modules.auth.domain.value_objects.name_vo import NameVO
@@ -30,18 +30,18 @@ class CreateFirstLibrarianUseCase:
         self,
         logger_factory_outbound: LoggerFactoryOutboundPort,
         password_hash_outbound: PasswordHashOutboundPort,
-        user_repository: UserRepositoryPort,
+        user_unit_of_work: UserUnitOfWorkPort,
     ) -> None:
         """Initializes the CreateFirstLibrarianUseCase.
 
         Args:
             logger_factory_outbound (LoggerFactoryOutboundPort): Factory used to create the logger instance.
             password_hash_outbound (PasswordHashOutboundPort): Outbound used to hash plain-text passwords.
-            user_repository (UserRepositoryPort): Repository used to interact with the user entity.
+            user_unit_of_work (UserUnitOfWorkPort): Unit of work used to persist user entities.
         """
         self._logger = logger_factory_outbound.get_logger(__name__)
         self._password_hash_outbound = password_hash_outbound
-        self._user_repository = user_repository
+        self._user_unit_of_work = user_unit_of_work
 
     async def execute(self, command: CreateFirstLibrarianCommandDto) -> None:
         """Creates the first librarian account.
@@ -66,20 +66,28 @@ class CreateFirstLibrarianUseCase:
             email_vo = EmailVO(command.email)
             plain_password_vo = PlainPasswordVO(command.password)
 
-            if await self._user_repository.exists_librarian():
-                self._logger.error("A librarian user is already registered.")
-                raise LibrarianAlreadyExistsException()
+            async with self._user_unit_of_work as uow:
+                if await uow.users.exists_librarian():
+                    self._logger.error("A librarian user is already registered.")
+                    raise LibrarianAlreadyExistsException()
 
-            password_hash = self._password_hash_outbound.hash(plain_password_vo)
+                password_hash = self._password_hash_outbound.hash(plain_password_vo)
 
-            entity = UserEntity.create(
-                name=name_vo,
-                email=email_vo,
-                password=password_hash,
-                role=UserRoleEnum.LIBRARIAN,
+                entity = UserEntity.create(
+                    name=name_vo,
+                    email=email_vo,
+                    password=password_hash,
+                    role=UserRoleEnum.LIBRARIAN,
+                )
+
+                user = await uow.users.save(entity)
+                await uow.commit()
+
+            self._logger.debug(
+                "Librarian created successfully.",
+                librarian_id=user.id,
+                email=user.email.value,
             )
-
-            user = await self._user_repository.save(entity)
 
         except BaseException as exc:
             self._logger.warning(
@@ -89,9 +97,4 @@ class CreateFirstLibrarianUseCase:
             )
             raise
 
-        self._logger.debug(
-            "Librarian created successfully.",
-            librarian_id=user.id,
-            email=user.email.value,
-        )
         self._logger.debug("Executed: Create first librarian use case.")

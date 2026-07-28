@@ -29,3 +29,15 @@ def password_hash_outbound_mock() -> Mock:
 @pytest.fixture
 def user_repository_mock() -> AsyncMock:
     return AsyncMock()
+
+
+@pytest.fixture
+def user_unit_of_work_mock() -> AsyncMock:
+    uow = AsyncMock()
+
+    uow.__aenter__.return_value = uow
+    uow.__aexit__.return_value = None
+
+    uow.users = AsyncMock()
+
+    return uow
