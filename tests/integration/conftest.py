@@ -19,6 +19,7 @@ from src.shared.infrastructure.database.database import db as _db
 from src.shared.infrastructure.outbound.structlog_logger_factory_outbound_adapter import (
     StructlogLoggerFactoryOutboundAdapter,
 )
+from tests.fixtures.database import _db_schema  # noqa: F401
 
 
 @pytest_asyncio.fixture
