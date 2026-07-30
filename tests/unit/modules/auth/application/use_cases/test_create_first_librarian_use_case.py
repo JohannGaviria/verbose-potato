@@ -13,7 +13,7 @@ from src.modules.auth.domain.exceptions.user_exception import (
     LibrarianAlreadyExistsException,
 )
 from src.shared.domain.enums.user_role_enum import UserRoleEnum
-from src.shared.domain.exceptions.base_exception import BaseException
+from src.shared.domain.exceptions.base_domain_exception import BaseDomainException
 
 
 class TestCreateFirstLibrarianUseCase:
@@ -142,7 +142,7 @@ class TestCreateFirstLibrarianUseCase:
             ),
         )
 
-        with pytest.raises(BaseException):
+        with pytest.raises(BaseDomainException):
             await use_case.execute(command)
 
         user_unit_of_work_mock.users.exists_librarian.assert_not_awaited()
@@ -188,7 +188,7 @@ class TestCreateFirstLibrarianUseCase:
             ),
         )
 
-        with pytest.raises(BaseException):
+        with pytest.raises(BaseDomainException):
             await use_case.execute(command)
 
         user_unit_of_work_mock.users.exists_librarian.assert_not_awaited()
@@ -229,7 +229,7 @@ class TestCreateFirstLibrarianUseCase:
             password=password,
         )
 
-        with pytest.raises(BaseException):
+        with pytest.raises(BaseDomainException):
             await use_case.execute(command)
 
         user_unit_of_work_mock.users.exists_librarian.assert_not_awaited()

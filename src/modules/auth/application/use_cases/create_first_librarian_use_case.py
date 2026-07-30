@@ -17,7 +17,7 @@ from src.modules.auth.domain.value_objects.email_vo import EmailVO
 from src.modules.auth.domain.value_objects.name_vo import NameVO
 from src.modules.auth.domain.value_objects.plain_password_vo import PlainPasswordVO
 from src.shared.domain.enums.user_role_enum import UserRoleEnum
-from src.shared.domain.exceptions.base_exception import BaseException
+from src.shared.domain.exceptions.base_domain_exception import BaseDomainException
 from src.shared.domain.ports.outbound.logger_factory_outbound_port import (
     LoggerFactoryOutboundPort,
 )
@@ -54,7 +54,7 @@ class CreateFirstLibrarianUseCase:
 
         Raises:
             LibrarianAlreadyExistsException: If a librarian account already exists.
-            BaseException: If any domain validation or business rule is violated.
+            BaseDomainException: If any domain validation or business rule is violated.
         """
         self._logger.debug(
             "Executing: Create first librarian use case.", email=command.email
@@ -89,7 +89,7 @@ class CreateFirstLibrarianUseCase:
                 email=user.email.value,
             )
 
-        except BaseException as exc:
+        except BaseDomainException as exc:
             self._logger.warning(
                 "Business rule violated while creating first librarian.",
                 error=str(exc),

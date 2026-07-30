@@ -1,9 +1,9 @@
 """This module contains the domain exceptions for user credentials."""
 
-from src.shared.domain.exceptions.base_exception import BaseException
+from src.shared.domain.exceptions.base_domain_exception import BaseDomainException
 
 
-class InvalidNameException(BaseException):
+class InvalidNameException(BaseDomainException):
     """Exception raised when a name is invalid."""
 
     def __init__(self, error: str, name: str) -> None:
@@ -18,7 +18,7 @@ class InvalidNameException(BaseException):
         super().__init__("Invalid name provided.")
 
 
-class InvalidEmailException(BaseException):
+class InvalidEmailException(BaseDomainException):
     """Exception raised when an email is invalid."""
 
     def __init__(self, error: str, email: str) -> None:
@@ -33,7 +33,7 @@ class InvalidEmailException(BaseException):
         super().__init__("Invalid email provided.")
 
 
-class InvalidPasswordHashException(BaseException):
+class InvalidPasswordHashException(BaseDomainException):
     """Exception raised when a password hash is invalid."""
 
     def __init__(self, error: str) -> None:
@@ -46,7 +46,7 @@ class InvalidPasswordHashException(BaseException):
         super().__init__("Invalid password hash provided.")
 
 
-class InvalidPlainPasswordException(BaseException):
+class InvalidPlainPasswordException(BaseDomainException):
     """Exception raised when a plain password is invalid."""
 
     def __init__(self, error: str) -> None:
