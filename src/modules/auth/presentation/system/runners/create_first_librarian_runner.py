@@ -9,7 +9,7 @@ from src.modules.auth.application.use_cases.create_first_librarian_use_case impo
 from src.modules.auth.domain.exceptions.user_exception import (
     LibrarianAlreadyExistsException,
 )
-from src.shared.domain.exceptions.base_exception import BaseException
+from src.shared.domain.exceptions.base_domain_exception import BaseDomainException
 from src.shared.domain.ports.outbound.logger_factory_outbound_port import (
     LoggerFactoryOutboundPort,
 )
@@ -52,7 +52,7 @@ class CreateFirstLibrarianRunner:
                 "First librarian already exists. Skipping bootstrap.",
                 error=str(exc),
             )
-        except BaseException as exc:
+        except BaseDomainException as exc:
             self._logger.error("Error while creating first librarian.", error=str(exc))
             raise
         except Exception as exc:

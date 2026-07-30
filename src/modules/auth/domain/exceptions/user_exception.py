@@ -1,9 +1,9 @@
 """This module contains the user domain exceptions."""
 
-from src.shared.domain.exceptions.base_exception import BaseException
+from src.shared.domain.exceptions.base_domain_exception import BaseDomainException
 
 
-class LibrarianAlreadyExistsException(BaseException):
+class LibrarianAlreadyExistsException(BaseDomainException):
     """Exception raised when a librarian already exists."""
 
     def __init__(self) -> None:
@@ -11,7 +11,7 @@ class LibrarianAlreadyExistsException(BaseException):
         super().__init__("A librarian user is already registered.")
 
 
-class UserRepositoryException(BaseException):
+class UserRepositoryException(BaseDomainException):
     """Exception raised when an error occurs while interacting with the user repository."""
 
     def __init__(self, error: str) -> None:

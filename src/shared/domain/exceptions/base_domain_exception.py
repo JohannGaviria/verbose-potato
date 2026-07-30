@@ -1,7 +1,7 @@
 """This module contains the base exception class."""
 
 
-class BaseException(Exception):
+class BaseDomainException(Exception):
     """Base class for domain-specific exceptions."""
 
     pass

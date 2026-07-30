@@ -1,9 +1,9 @@
 """This module contains the cache exceptions class."""
 
-from src.shared.domain.exceptions.base_exception import BaseException
+from src.shared.domain.exceptions.base_domain_exception import BaseDomainException
 
 
-class InvalidCacheKeyException(BaseException):
+class InvalidCacheKeyException(BaseDomainException):
     """Exception raised when a cache key is invalid."""
 
     def __init__(self, error: str) -> None:
@@ -16,7 +16,7 @@ class InvalidCacheKeyException(BaseException):
         super().__init__("Invalid cache key.")
 
 
-class InvalidCacheTTLException(BaseException):
+class InvalidCacheTTLException(BaseDomainException):
     """Exception raised when a cache TTL value is invalid."""
 
     def __init__(self, error: str) -> None:
@@ -29,7 +29,7 @@ class InvalidCacheTTLException(BaseException):
         super().__init__("Invalid cache TTL.")
 
 
-class InvalidCacheEntryException(BaseException):
+class InvalidCacheEntryException(BaseDomainException):
     """Exception raised when a cache entry is invalid."""
 
     def __init__(self, error: str) -> None:
@@ -42,7 +42,7 @@ class InvalidCacheEntryException(BaseException):
         super().__init__("Invalid cache entry.")
 
 
-class CacheRetrievalException(BaseException):
+class CacheRetrievalException(BaseDomainException):
     """Exception raised when there is an error retrieving data from the cache."""
 
     def __init__(self, error: str) -> None:
@@ -55,7 +55,7 @@ class CacheRetrievalException(BaseException):
         super().__init__("Error retrieving data from cache.")
 
 
-class CacheStorageException(BaseException):
+class CacheStorageException(BaseDomainException):
     """Exception raised when there is an error storing data in the cache."""
 
     def __init__(self, error: str) -> None:
@@ -68,7 +68,7 @@ class CacheStorageException(BaseException):
         super().__init__("Error storing data in cache.")
 
 
-class CacheDeletionException(BaseException):
+class CacheDeletionException(BaseDomainException):
     """Exception raised when there is an error deleting data from the cache."""
 
     def __init__(self, error: str) -> None:
