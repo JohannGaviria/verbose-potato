@@ -8,7 +8,7 @@ from src.modules.auth.infrastructure.persistence.unit_of_work.sqlalchemy_user_un
     SQLAlchemyUserUnitOfWorkAdapter,
 )
 from src.shared.infrastructure.database.database import db
-from src.shared.presentation.api.compositions.infrastructure_composition import (
+from src.shared.presentation.compositions.infrastructure_composition import (
     get_logger_factory_outbound,
 )
 

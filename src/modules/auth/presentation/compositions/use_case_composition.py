@@ -3,11 +3,11 @@
 from src.modules.auth.application.use_cases.create_first_librarian_use_case import (
     CreateFirstLibrarianUseCase,
 )
-from src.modules.auth.presentation.system.compositions.infrastructure_composition import (
+from src.modules.auth.presentation.compositions.infrastructure_composition import (
     get_password_hash_outbound,
     get_user_unit_of_work,
 )
-from src.shared.presentation.api.compositions.infrastructure_composition import (
+from src.shared.presentation.compositions.infrastructure_composition import (
     get_logger_factory_outbound,
 )
 
