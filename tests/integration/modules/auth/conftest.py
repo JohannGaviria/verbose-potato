@@ -4,10 +4,14 @@ import pytest
 from faker import Faker
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from src.config import settings
 from src.modules.auth.domain.entities.user_entity import UserEntity
 from src.modules.auth.domain.value_objects.email_vo import EmailVO
 from src.modules.auth.domain.value_objects.name_vo import NameVO
 from src.modules.auth.domain.value_objects.password_hash_vo import PasswordHashVO
+from src.modules.auth.infrastructure.outbound.argon2_password_hash_outbound_adapter import (
+    Argon2PasswordHashOutboundAdapter,
+)
 from src.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_repository_adapter import (
     SQLAlchemyUserRepositoryAdapter,
 )
@@ -65,4 +69,13 @@ def user_unit_of_work(
     return SQLAlchemyUserUnitOfWorkAdapter(
         session_factory=session_factory,
         logger_factory_outbound=logger_factory_outbound,
+    )
+
+
+@pytest.fixture
+def password_hash_outbound() -> Argon2PasswordHashOutboundAdapter:
+    return Argon2PasswordHashOutboundAdapter(
+        time_cost=settings.ARGON2_TIME_COST,
+        memory_cost=settings.ARGON2_MEMORY_COST,
+        parallelism=settings.ARGON2_PARALLELISM,
     )
