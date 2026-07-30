@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.config import settings
-from src.modules.auth.presentation.system.compositions.runner_composition import (
+from src.modules.auth.presentation.compositions.runner_composition import (
     get_create_first_librarian_runner,
 )
 from src.shared.infrastructure.cache.redis_client import redis_client

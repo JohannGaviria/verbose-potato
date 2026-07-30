@@ -4,13 +4,13 @@ from src.config import settings
 from src.modules.auth.application.dtos.create_first_librarian_dto import (
     CreateFirstLibrarianCommandDto,
 )
-from src.modules.auth.presentation.system.compositions.use_case_composition import (
+from src.modules.auth.presentation.compositions.use_case_composition import (
     get_create_first_librarian_use_case,
 )
 from src.modules.auth.presentation.system.runners.create_first_librarian_runner import (
     CreateFirstLibrarianRunner,
 )
-from src.shared.presentation.api.compositions.infrastructure_composition import (
+from src.shared.presentation.compositions.infrastructure_composition import (
     get_logger_factory_outbound,
 )
 
