@@ -8,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.config import settings
+from src.modules.auth.presentation.system.compositions.runner_composition import (
+    get_create_first_librarian_runner,
+)
 from src.shared.infrastructure.cache.redis_client import redis_client
 from src.shared.infrastructure.database.database import db
 from src.shared.infrastructure.logging.structlog_configure_logging import (
@@ -31,6 +34,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Startup: open database and Redis connections once per process.
     db.connect()
     redis_client.connect()
+
+    # Seed the database with the first librarian account.
+    runner = get_create_first_librarian_runner()
+    await runner.run()
+
     yield
     # Shutdown: close database and Redis connections once per process.
     await redis_client.disconnect()

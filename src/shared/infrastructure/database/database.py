@@ -91,5 +91,13 @@ class Database:
                 await session.rollback()
                 raise
 
+    def session_factory(self) -> async_sessionmaker[AsyncSession]:
+        """Returns a sessionmaker bound to the database."""
+        if self._sessionmaker is None:
+            self._logger.debug("Database not connected. Calling connect()...")
+            raise RuntimeError("Database not connected. Call connect() first.")
+
+        return self._sessionmaker
+
 
 db = Database()
