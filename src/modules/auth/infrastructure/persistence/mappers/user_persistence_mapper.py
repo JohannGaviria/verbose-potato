@@ -25,7 +25,7 @@ class UserPersistenceMapper:
             id=entity.id,
             name=entity.name.value,
             email=entity.email.value,
-            password=entity.password,
+            password=entity.password.password_hash,
             role=entity.role.value,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
