@@ -4,6 +4,10 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+pytest_plugins = [
+    "tests.fixtures.database",
+]
+
 
 @pytest.fixture
 def app() -> FastAPI:

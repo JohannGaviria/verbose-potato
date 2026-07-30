@@ -7,6 +7,9 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from src.config import settings
+from src.modules.auth.infrastructure.persistence.models.user_model import (
+    UserModel,  # noqa: F401
+)
 from src.shared.infrastructure.persistence.models.base_model import Base
 
 
