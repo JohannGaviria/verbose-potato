@@ -43,6 +43,9 @@ cp .env.example .env
 | `BACKEND_WORKERS` | Number of server worker processes. | `4` |
 | `CORS_ALLOW_ORIGINS` | Allowed origins for CORS requests. | `http://localhost:8000` |
 | `CORS_ALLOW_CREDENTIALS` | Allows credentials to be included in CORS requests. | `True` |
+| `ARGON2_TIME_COST` | Argon2 time cost. | `3` |
+| `ARGON2_MEMORY_COST` | Argon2 memory cost. | `65536` |
+| `ARGON2_PARALLELISM` | Argon2 parallelism. | `4` |
 | `POSTGRES_USER` | PostgreSQL username. | `postgres` |
 | `POSTGRES_PASSWORD` | PostgreSQL user password. | `password` |
 | `POSTGRES_DB` | PostgreSQL database name. | `verbose_potato` |
