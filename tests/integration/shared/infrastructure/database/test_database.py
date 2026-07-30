@@ -122,3 +122,23 @@ class TestDatabase:
         assert not session.is_active or session.in_transaction() is False
 
         await database.disconnect()
+
+    async def test_should_raise_runtime_error_when_session_factory_called_before_connect(
+        self,
+    ) -> None:
+        database = Database()
+
+        with pytest.raises(RuntimeError):
+            database.session_factory()
+
+    async def test_should_return_sessionmaker_when_session_factory_is_called(
+        self,
+    ) -> None:
+        database = Database()
+        database.connect()
+
+        session_factory = database.session_factory()
+
+        assert session_factory is database._sessionmaker
+
+        await database.disconnect()
