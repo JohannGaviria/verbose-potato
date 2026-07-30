@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     CORS_ALLOW_ORIGINS: str = Field(..., validation_alias="CORS_ALLOW_ORIGINS")
     CORS_ALLOW_CREDENTIALS: bool = Field(..., validation_alias="CORS_ALLOW_CREDENTIALS")
 
+    # First librarian configuration
+    FIRST_LIBRARIES_NAME: str = Field(..., validation_alias="FIRST_LIBRARIES_NAME")
+    FIRST_LIBRARIES_EMAIL: str = Field(..., validation_alias="FIRST_LIBRARIES_EMAIL")
+    FIRST_LIBRARIES_PASSWORD: str = Field(
+        ..., validation_alias="FIRST_LIBRARIES_PASSWORD"
+    )
+
     # Argon2 configuration
     ARGON2_TIME_COST: int = Field(..., validation_alias="ARGON2_TIME_COST")
     ARGON2_MEMORY_COST: int = Field(..., validation_alias="ARGON2_MEMORY_COST")
