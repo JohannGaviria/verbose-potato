@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass
 
-from src.modules.auth.application.dtos.base_auth_dto import BaseUserDto
+from src.modules.auth.application.dtos.base_auth_dto import BaseUserCommandDto
 
 
 @dataclass(frozen=True, slots=True)
-class CreateFirstLibrarianCommandDto(BaseUserDto):
+class CreateFirstLibrarianCommandDto(BaseUserCommandDto):
     """Command DTO for creating the first librarian user.
 
     Attributes:

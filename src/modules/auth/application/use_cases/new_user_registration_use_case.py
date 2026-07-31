@@ -1,12 +1,11 @@
-"""This module contains the create first librarian use case class."""
+"""This module contains the new user registration use case class."""
 
-from src.modules.auth.application.dtos.create_first_librarian_dto import (
-    CreateFirstLibrarianCommandDto,
+from src.modules.auth.application.dtos.new_user_registration_dto import (
+    NewUserRegistrationCommandDto,
+    NewUserRegistrationResponseDto,
 )
 from src.modules.auth.domain.entities.user_entity import UserEntity
-from src.modules.auth.domain.exceptions.user_exception import (
-    LibrarianAlreadyExistsException,
-)
+from src.modules.auth.domain.exceptions.user_exception import UserAlreadyExistsException
 from src.modules.auth.domain.ports.outbound.password_hash_outbound_port import (
     PasswordHashOutboundPort,
 )
@@ -23,8 +22,8 @@ from src.shared.domain.ports.outbound.logger_factory_outbound_port import (
 )
 
 
-class CreateFirstLibrarianUseCase:
-    """Creates the initial librarian user if one does not already exist."""
+class NewUserRegistrationUseCase:
+    """Creates a new user."""
 
     def __init__(
         self,
@@ -32,7 +31,7 @@ class CreateFirstLibrarianUseCase:
         password_hash_outbound: PasswordHashOutboundPort,
         user_unit_of_work: UserUnitOfWorkPort,
     ) -> None:
-        """Initializes the CreateFirstLibrarianUseCase.
+        """Initializes the NewUserRegistrationUseCase.
 
         Args:
             logger_factory_outbound (LoggerFactoryOutboundPort): Factory used to create the logger instance.
@@ -43,59 +42,66 @@ class CreateFirstLibrarianUseCase:
         self._password_hash_outbound = password_hash_outbound
         self._user_unit_of_work = user_unit_of_work
 
-    async def execute(self, command: CreateFirstLibrarianCommandDto) -> None:
-        """Creates the first librarian account.
+    async def execute(
+        self, command: NewUserRegistrationCommandDto
+    ) -> NewUserRegistrationResponseDto:
+        """Executes the new user registration use case.
 
-        Validates the provided data, ensures that no librarian account already
-        exists, hashes the password, creates the user entity, and persists it.
+        Validates the provided data, ensures that no user already exists, hashes the password,
+        creates the user entity, and persists it.
 
         Args:
-            command: Data required to create the first librarian account.
+            command (NewUserRegistrationCommandDto): Data required to create the new user.
+
+        Returns:
+            NewUserRegistrationResponseDto: The response DTO for the new user registration.
 
         Raises:
-            LibrarianAlreadyExistsException: If a librarian account already exists.
+            UserAlreadyExistsException: If a user already exists.
             BaseDomainException: If any domain validation or business rule is violated.
         """
         self._logger.debug(
-            "Executing: Create first librarian use case.", email=command.email
+            "Executing: New user registration use case", email=command.email
         )
 
         try:
             # Validate value objects immediately upon creation.
-            name_vo = NameVO(command.name)
-            email_vo = EmailVO(command.email)
-            plain_password_vo = PlainPasswordVO(command.password)
+            name = NameVO(command.name)
+            email = EmailVO(command.email)
+            password = PlainPasswordVO(command.password)
 
             async with self._user_unit_of_work as uow:
-                if await uow.users.exists_librarian():
-                    self._logger.error("A librarian user is already registered.")
-                    raise LibrarianAlreadyExistsException()
+                exists_user = await uow.users.find_by_email(email)
 
-                password_hash = self._password_hash_outbound.hash(plain_password_vo)
+                if exists_user:
+                    self._logger.warning("User already exists.", email=command.email)
+                    raise UserAlreadyExistsException()
+
+                password_hash = self._password_hash_outbound.hash(password)
 
                 entity = UserEntity.create(
-                    name=name_vo,
-                    email=email_vo,
+                    name=name,
+                    email=email,
                     password=password_hash,
-                    role=UserRoleEnum.LIBRARIAN,
+                    role=UserRoleEnum.MEMBER,
                 )
 
                 user = await uow.users.save(entity)
                 await uow.commit()
 
             self._logger.debug(
-                "Librarian created successfully.",
-                librarian_id=user.id,
-                email=user.email.value,
+                "User created successfully.", user_id=user.id, email=user.email.value
             )
+
+            return NewUserRegistrationResponseDto.response(user)
 
         except BaseDomainException as exc:
             self._logger.warning(
-                "Business rule violated while creating first librarian.",
+                "Business rule violated while new user registration.",
                 error=str(exc),
                 email=command.email,
             )
             raise
 
         finally:
-            self._logger.debug("Executed: Create first librarian use case.")
+            self._logger.debug("Executed: New user registration use case.")
