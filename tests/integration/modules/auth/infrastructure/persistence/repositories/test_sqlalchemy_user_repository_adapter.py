@@ -1,11 +1,14 @@
 from collections.abc import Callable
+from unittest.mock import patch
 
 import pytest
-from sqlalchemy import text
+from faker import Faker
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.modules.auth.domain.entities.user_entity import UserEntity
 from src.modules.auth.domain.exceptions.user_exception import UserRepositoryException
+from src.modules.auth.domain.value_objects.email_vo import EmailVO
 from src.modules.auth.infrastructure.persistence.models.user_model import UserModel
 from src.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_repository_adapter import (
     SQLAlchemyUserRepositoryAdapter,
@@ -18,6 +21,46 @@ pytestmark = pytest.mark.db
 
 
 class TestSQLAlchemyUserRepositoryAdapter:
+    class TestFindByEmail:
+        async def test_should_return_none_when_no_user_exists(
+            self,
+            faker: Faker,
+            user_repository: SQLAlchemyUserRepositoryAdapter,
+        ) -> None:
+            assert await user_repository.find_by_email(EmailVO(faker.email())) is None
+
+        async def test_should_return_user_when_user_exists(
+            self,
+            user_repository: SQLAlchemyUserRepositoryAdapter,
+            make_user_entity: UserEntityFactory,
+        ) -> None:
+            user = make_user_entity()
+            await user_repository.save(user)
+
+            result = await user_repository.find_by_email(user.email)
+
+            assert result is not None
+            assert result.id == user.id
+            assert result.name == user.name
+            assert result.email == user.email
+            assert result.password == user.password
+            assert result.role == user.role
+            assert result.created_at == user.created_at
+            assert result.updated_at == user.updated_at
+
+        async def test_should_raise_user_repository_exception_when_a_database_error_occurs(
+            self,
+            faker: Faker,
+            user_repository: SQLAlchemyUserRepositoryAdapter,
+        ) -> None:
+            with patch.object(
+                user_repository._session,
+                "execute",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(UserRepositoryException):
+                    await user_repository.find_by_email(EmailVO(faker.email()))
+
     class TestExistsLibrarian:
         async def test_should_return_false_when_no_user_exists(
             self,
@@ -57,15 +100,14 @@ class TestSQLAlchemyUserRepositoryAdapter:
         async def test_should_raise_user_repository_exception_when_a_database_error_occurs(
             self,
             user_repository: SQLAlchemyUserRepositoryAdapter,
-            db_session: AsyncSession,
         ) -> None:
-            # Drop the table out from under the adapter to force a real,
-            # unmocked SQLAlchemyError (rather than IntegrityError) so the
-            # generic error-handling branch is exercised end to end.
-            await db_session.execute(text("DROP TABLE users"))
-
-            with pytest.raises(UserRepositoryException):
-                await user_repository.exists_librarian()
+            with patch.object(
+                user_repository._session,
+                "execute",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(UserRepositoryException):
+                    await user_repository.exists_librarian()
 
     class TestSave:
         async def test_should_persist_user_when_entity_is_valid(
@@ -114,13 +156,41 @@ class TestSQLAlchemyUserRepositoryAdapter:
             with pytest.raises(UserRepositoryException):
                 await user_repository.save(make_user_entity(email=duplicate_email))
 
-        async def test_should_raise_user_repository_exception_when_a_database_error_occurs(
+        async def test_should_raise_user_repository_exception_when_a_database_error_occurs_on_add(
             self,
             user_repository: SQLAlchemyUserRepositoryAdapter,
-            db_session: AsyncSession,
             make_user_entity: UserEntityFactory,
         ) -> None:
-            await db_session.execute(text("DROP TABLE users"))
+            with patch.object(
+                user_repository._session,
+                "add",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(UserRepositoryException):
+                    await user_repository.save(make_user_entity())
 
-            with pytest.raises(UserRepositoryException):
-                await user_repository.save(make_user_entity())
+        async def test_should_raise_user_repository_exception_when_a_database_error_occurs_on_flush(
+            self,
+            user_repository: SQLAlchemyUserRepositoryAdapter,
+            make_user_entity: UserEntityFactory,
+        ) -> None:
+            with patch.object(
+                user_repository._session,
+                "flush",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(UserRepositoryException):
+                    await user_repository.save(make_user_entity())
+
+        async def test_should_raise_user_repository_exception_when_a_database_error_occurs_on_refresh(
+            self,
+            user_repository: SQLAlchemyUserRepositoryAdapter,
+            make_user_entity: UserEntityFactory,
+        ) -> None:
+            with patch.object(
+                user_repository._session,
+                "refresh",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(UserRepositoryException):
+                    await user_repository.save(make_user_entity())
