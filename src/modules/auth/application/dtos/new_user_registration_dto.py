@@ -4,16 +4,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from src.modules.auth.application.dtos.base_auth_dto import (
-    BaseUserCommandDto,
-    BaseUserResponseDto,
-)
 from src.modules.auth.domain.entities.user_entity import UserEntity
 from src.shared.domain.enums.user_role_enum import UserRoleEnum
 
 
 @dataclass(frozen=True, slots=True)
-class NewUserRegistrationCommandDto(BaseUserCommandDto):
+class NewUserRegistrationCommandDto:
     """Command DTO for new user registration.
 
     Attributes:
@@ -22,11 +18,13 @@ class NewUserRegistrationCommandDto(BaseUserCommandDto):
         password (str): The user's password.
     """
 
-    ...
+    name: str
+    email: str
+    password: str
 
 
 @dataclass(frozen=True, slots=True)
-class NewUserRegistrationResponseDto(BaseUserResponseDto):
+class NewUserRegistrationResponseDto:
     """Response DTO for new user registration.
 
     Attributes:
@@ -39,6 +37,8 @@ class NewUserRegistrationResponseDto(BaseUserResponseDto):
     """
 
     id: UUID
+    name: str
+    email: str
     role: UserRoleEnum
     created_at: datetime
     updated_at: datetime
