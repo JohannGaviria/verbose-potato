@@ -20,6 +20,7 @@ class UserRepositoryException(BaseDomainException):
         Args:
             error (str): The error message.
         """
+        self.error = error
         super().__init__("Error while interacting with the user repository.")
 
 
