@@ -20,4 +20,13 @@ class UserRepositoryException(BaseDomainException):
         Args:
             error (str): The error message.
         """
+        self.error = error
         super().__init__("Error while interacting with the user repository.")
+
+
+class UserAlreadyExistsException(BaseDomainException):
+    """Exception raised when a user already exists."""
+
+    def __init__(self) -> None:
+        """Initializes the UserAlreadyExistsException."""
+        super().__init__("A user is already registered.")

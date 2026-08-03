@@ -8,6 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.config import settings
+from src.modules.auth.presentation.api.exceptions.auth_exception_handlers import (
+    auth_exception_handlers,
+)
+from src.modules.auth.presentation.api.routes import auth_router
 from src.modules.auth.presentation.compositions.runner_composition import (
     get_create_first_librarian_runner,
 )
@@ -16,6 +20,7 @@ from src.shared.infrastructure.database.database import db
 from src.shared.infrastructure.logging.structlog_configure_logging import (
     StructlogConfigureLogging,
 )
+from src.shared.presentation.api.exceptions.exception_handlers import exception_handlers
 from src.shared.presentation.api.middleware.correlation_id_middleware import (
     CorrelationIdMiddleware,
 )
@@ -76,6 +81,15 @@ app.add_middleware(
 
 # Includes the middleware for the API endpoints
 app.add_middleware(CorrelationIdMiddleware)
+
+
+# Includes the exception handlers for the API endpoints
+exception_handlers(app)
+auth_exception_handlers(app)
+
+
+# Includes the routers for the API endpoints
+app.include_router(auth_router.router)
 
 
 @app.get(

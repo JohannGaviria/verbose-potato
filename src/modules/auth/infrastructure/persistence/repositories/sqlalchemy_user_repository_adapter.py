@@ -9,6 +9,7 @@ from src.modules.auth.domain.exceptions.user_exception import UserRepositoryExce
 from src.modules.auth.domain.ports.repositories.user_repository_port import (
     UserRepositoryPort,
 )
+from src.modules.auth.domain.value_objects.email_vo import EmailVO
 from src.modules.auth.infrastructure.persistence.mappers.user_persistence_mapper import (
     UserPersistenceMapper,
 )
@@ -33,6 +34,31 @@ class SQLAlchemyUserRepositoryAdapter(UserRepositoryPort):
         """
         self._session = session
         self._logger = logger_factory_outbound.get_logger(__name__)
+
+    async def find_by_email(self, email: EmailVO) -> UserEntity | None:
+        """Finds a user by its email.
+
+        Args:
+            email (EmailVO): The email of the user to be found.
+
+        Returns:
+            UserEntity | None: The found user or None if not found.
+
+        Raises:
+            UserRepositoryException: If an error occurs while finding the user.
+        """
+        try:
+            stmt = select(UserModel).where(UserModel.email == email.value)
+            result = await self._session.execute(stmt)
+            model = result.scalar_one_or_none()
+            return UserPersistenceMapper.to_entity(model) if model else None
+
+        except SQLAlchemyError as exc:
+            self._logger.error(
+                "Error while finding user by email.",
+                error=str(exc),
+            )
+            raise UserRepositoryException("Error while finding user by email.") from exc
 
     async def exists_librarian(self) -> bool:
         """Check if exists a librarian.
