@@ -40,3 +40,11 @@ class InvalidAccessTokenException(BaseDomainException):
         """
         self.error = error
         super().__init__("Invalid access token.")
+
+
+class InvalidCredentialsException(BaseDomainException):
+    """Exception raised when invalid credentials are provided."""
+
+    def __init__(self) -> None:
+        """Initializes the InvalidCredentialsException."""
+        super().__init__("Authentication failed due to invalid credentials.")
