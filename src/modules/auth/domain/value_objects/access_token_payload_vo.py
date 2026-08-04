@@ -73,8 +73,8 @@ class AccessTokenPayloadVO(BaseValueObject):
             dict: The access token payload as a dictionary.
         """
         return {
-            "jti": self.jti,
-            "sub": self.sub,
-            "role": self.role,
-            "exp": self.exp,
+            "jti": str(self.jti),
+            "sub": str(self.sub),
+            "role": self.role.value,
+            "exp": int(self.exp.timestamp()),
         }

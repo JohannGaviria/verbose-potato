@@ -234,8 +234,8 @@ class TestAccessTokenPayloadVO:
         )
 
         assert payload_vo.to_dict() == {
-            "jti": valid_jti,
-            "sub": valid_sub,
-            "role": valid_role,
-            "exp": valid_exp,
+            "jti": str(valid_jti),
+            "sub": str(valid_sub),
+            "role": valid_role.value,
+            "exp": int(valid_exp.timestamp()),
         }
