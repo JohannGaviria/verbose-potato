@@ -2,6 +2,9 @@
 
 from fastapi import FastAPI
 
+from src.modules.auth.presentation.api.exceptions.authentication_exception_handlers import (
+    authentication_exception_handlers,
+)
 from src.modules.auth.presentation.api.exceptions.credentials_exception_handlers import (
     credentials_exception_handlers,
 )
@@ -18,3 +21,4 @@ def auth_exception_handlers(app: FastAPI) -> None:
     """
     credentials_exception_handlers(app)
     user_exception_handlers(app)
+    authentication_exception_handlers(app)

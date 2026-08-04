@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     ARGON2_MEMORY_COST: int = Field(..., validation_alias="ARGON2_MEMORY_COST")
     ARGON2_PARALLELISM: int = Field(..., validation_alias="ARGON2_PARALLELISM")
 
+    # JWT configuration
+    JWT_SECRET_KEY: str = Field(..., validation_alias="JWT_SECRET_KEY")
+    JWT_ALGORITHM: str = Field(..., validation_alias="JWT_ALGORITHM")
+    JWT_ACCESS_TOKEN_EXPIRES_IN: int = Field(
+        ..., validation_alias="JWT_ACCESS_TOKEN_EXPIRES_IN"
+    )
+
     # PostgreSQL configuration
     POSTGRES_USER: str = Field(..., validation_alias="POSTGRES_USER")
     POSTGRES_PASSWORD: str = Field(..., validation_alias="POSTGRES_PASSWORD")
