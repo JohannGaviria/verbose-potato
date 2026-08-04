@@ -42,6 +42,19 @@ class InvalidAccessTokenException(BaseDomainException):
         super().__init__("Invalid access token.")
 
 
+class InvalidAccessTokenPayloadException(BaseDomainException):
+    """Exception raised when invalid access token payload is provided."""
+
+    def __init__(self, error: str) -> None:
+        """Initializes the InvalidAccessTokenPayloadException.
+
+        Args:
+            error (str): The error message.
+        """
+        self.error = error
+        super().__init__("Invalid access token payload.")
+
+
 class InvalidCredentialsException(BaseDomainException):
     """Exception raised when invalid credentials are provided."""
 
