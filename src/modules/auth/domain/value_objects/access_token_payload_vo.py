@@ -1,6 +1,7 @@
 """This module contains the access token payload value object."""
 
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import UUID
 
 from src.modules.auth.domain.exceptions.authentication_exception import (
@@ -18,13 +19,13 @@ class AccessTokenPayloadVO(BaseValueObject):
         jti (UUID): The unique identifier for the token.
         sub (UUID): The unique identifier for the user.
         role (UserRoleEnum): The user's role.
-        exp (int): The expiration time for the token.
+        exp (datetime): The expiration time for the token.
     """
 
     jti: UUID
     sub: UUID
     role: UserRoleEnum
-    exp: int
+    exp: datetime
 
     def _validate(self) -> None:
         """Validates the access token payload value object.
@@ -37,7 +38,9 @@ class AccessTokenPayloadVO(BaseValueObject):
         - jti must be a UUID.
         - sub must be a UUID.
         - role must be a UserRoleEnum.
-        - exp must be an integer.
+        - exp must be a datetime.
+        - exp must be timezone-aware.
+        - exp must be in the future.
 
         Raises:
             InvalidAccessTokenPayloadException: If the access token payload is invalid.
@@ -56,8 +59,12 @@ class AccessTokenPayloadVO(BaseValueObject):
             raise InvalidAccessTokenPayloadException("sub must be a UUID.")
         if not isinstance(self.role, UserRoleEnum):
             raise InvalidAccessTokenPayloadException("role must be a UserRoleEnum.")
-        if not isinstance(self.exp, int):
-            raise InvalidAccessTokenPayloadException("exp must be an integer.")
+        if not isinstance(self.exp, datetime):
+            raise InvalidAccessTokenPayloadException("exp must be a datetime.")
+        if self.exp.tzinfo is None:
+            raise InvalidAccessTokenPayloadException("exp must be timezone-aware.")
+        if self.exp <= datetime.now(UTC):
+            raise InvalidAccessTokenPayloadException("exp must be a future datetime.")
 
     def to_dict(self) -> dict:
         """Returns the access token payload as a dictionary.
