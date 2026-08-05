@@ -49,6 +49,9 @@ cp .env.example .env
 | `ARGON2_TIME_COST` | Argon2 time cost. | `3` |
 | `ARGON2_MEMORY_COST` | Argon2 memory cost. | `65536` |
 | `ARGON2_PARALLELISM` | Argon2 parallelism. | `4` |
+| `JWT_SECRET_KEY` | Secret key used to sign the JWT. | `secret` |
+| `JWT_ALGORITHM` | Algorithm used to sign the JWT. | `HS256` |
+| `JWT_ACCESS_TOKEN_EXPIRES_IN` | Number of seconds until the access token expires. | `3600` |
 | `POSTGRES_USER` | PostgreSQL username. | `postgres` |
 | `POSTGRES_PASSWORD` | PostgreSQL user password. | `password` |
 | `POSTGRES_DB` | PostgreSQL database name. | `verbose_potato` |

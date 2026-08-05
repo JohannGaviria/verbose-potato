@@ -12,6 +12,9 @@ from src.modules.auth.domain.value_objects.password_hash_vo import PasswordHashV
 from src.modules.auth.infrastructure.outbound.argon2_password_hash_outbound_adapter import (
     Argon2PasswordHashOutboundAdapter,
 )
+from src.modules.auth.infrastructure.outbound.pyjwt_token_generator_outbound_adapter import (
+    PyJWTTokenGeneratorOutboundAdapter,
+)
 from src.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_repository_adapter import (
     SQLAlchemyUserRepositoryAdapter,
 )
@@ -78,4 +81,13 @@ def password_hash_outbound() -> Argon2PasswordHashOutboundAdapter:
         time_cost=settings.ARGON2_TIME_COST,
         memory_cost=settings.ARGON2_MEMORY_COST,
         parallelism=settings.ARGON2_PARALLELISM,
+    )
+
+
+@pytest.fixture
+def token_generator_outbound() -> PyJWTTokenGeneratorOutboundAdapter:
+    return PyJWTTokenGeneratorOutboundAdapter(
+        jwt_secret_key=settings.JWT_SECRET_KEY,
+        jwt_algorithm=settings.JWT_ALGORITHM,
+        jwt_access_token_expires_in=settings.JWT_ACCESS_TOKEN_EXPIRES_IN,
     )

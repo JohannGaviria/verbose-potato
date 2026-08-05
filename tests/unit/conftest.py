@@ -27,6 +27,11 @@ def password_hash_outbound_mock() -> Mock:
 
 
 @pytest.fixture
+def token_generator_outbound_mock() -> Mock:
+    return Mock()
+
+
+@pytest.fixture
 def user_repository_mock() -> AsyncMock:
     return AsyncMock()
 
