@@ -11,9 +11,15 @@ NC='\033[0m'
 echo ${GREEN} "Starting application in $ENVIRONMENT mode..." ${NC}
 echo ${GREEN} "Host: 0.0.0.0, Port: $BACKEND_PORT" ${NC}
 
+run_migrations() {
+    echo "${GREEN}Applying database migrations...${NC}"
+    poetry run alembic upgrade head
+}
+
 case "$1" in
   dev)
     echo ${GREEN} "Running development stage..." ${NC}
+    run_migrations
     exec poetry run uvicorn src.main:app --host 0.0.0.0 --port $BACKEND_PORT --reload
     ;;
   test)
@@ -22,6 +28,7 @@ case "$1" in
     ;;
   prod)
     echo ${GREEN} "Running production stage..." ${NC}
+    run_migrations
     exec poetry run gunicorn src.main:app \
       -k uvicorn.workers.UvicornWorker \
       -w 4 \

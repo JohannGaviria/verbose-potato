@@ -4,6 +4,10 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from tests.fixtures.database import (
+    _db_schema,  # noqa: F401
+)
+
 
 @pytest.fixture
 def app() -> FastAPI:
@@ -16,7 +20,6 @@ def app() -> FastAPI:
 
 @pytest.fixture
 def client(app: FastAPI) -> Iterator[TestClient]:
-    # Using the TestClient as a context manager runs the app's lifespan,
-    # so the database and Redis connections used by /health are real.
+    """A TestClient whose app lifespan runs for real, then a clean slate."""
     with TestClient(app) as test_client:
         yield test_client
