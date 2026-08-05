@@ -1,7 +1,9 @@
 ARG PYTHON_VERSION=3.12-slim
 ARG POETRY_VERSION=2.3.4
 
-
+# =============================================================================
+# Base
+# =============================================================================
 FROM python:${PYTHON_VERSION} AS base
 ARG POETRY_VERSION
 
@@ -24,12 +26,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip install "poetry==${POETRY_VERSION}"
 
 COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root
 
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
 
-
+# =============================================================================
+# Development
+# =============================================================================
 FROM base AS development
 
 RUN poetry install --no-root --with dev
@@ -38,7 +41,9 @@ COPY . .
 EXPOSE 8000
 CMD ["dev"]
 
-
+# =============================================================================
+# Testing
+# =============================================================================
 FROM base AS testing
 
 RUN poetry install --no-root --with test
@@ -46,10 +51,14 @@ COPY . .
 
 CMD ["test"]
 
-
+# =============================================================================
+# Production
+# =============================================================================
 FROM base AS production
 
 RUN poetry install --no-root --with prod
+
+COPY alembic.ini .
 COPY src ./src
 
 RUN useradd --create-home --shell /bin/bash appuser \
