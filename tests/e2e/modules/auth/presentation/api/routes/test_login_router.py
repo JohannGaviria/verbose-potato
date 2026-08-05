@@ -277,7 +277,10 @@ class TestLogin:
         def test_should_return_unprocessable_entity_when_field_has_wrong_type(
             self, client: TestClient, faker: Faker, malformed_field: str
         ) -> None:
-            payload = {"email": faker.email(), "password": _valid_password(faker)}
+            payload: dict[str, Any] = {
+                "email": faker.email(),
+                "password": _valid_password(faker),
+            }
             payload[malformed_field] = 12345
 
             response = client.post(url=LOGIN_URL, json=payload)
