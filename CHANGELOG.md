@@ -1,3 +1,12 @@
+## [1.8.1](https://github.com/JohannGaviria/verbose-potato/compare/v1.8.0...v1.8.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* copy alembic.ini to production image ([3525024](https://github.com/JohannGaviria/verbose-potato/commit/352502431e7e8c87df7ecee5f372ddb74410a0fa))
+* copy alembic.ini to production image ([c00fc17](https://github.com/JohannGaviria/verbose-potato/commit/c00fc171492504db9f94e86823c125cb82d841db))
+* copy alembic.ini to production image ([d320685](https://github.com/JohannGaviria/verbose-potato/commit/d320685595d32a34670ba81dd2f0cce2961d23ab))
+
 # [1.8.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.7.1...v1.8.0) (2026-08-05)
 
 
