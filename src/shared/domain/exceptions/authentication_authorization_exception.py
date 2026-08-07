@@ -27,3 +27,19 @@ class InvalidAccessTokenPayloadException(BaseDomainException):
         """
         self.error = error
         super().__init__("Invalid access token payload.")
+
+
+class ExpiredAccessTokenException(BaseDomainException):
+    """Exception raised when access token has expired."""
+
+    def __init__(self) -> None:
+        """Initializes the ExpiredAccessTokenException."""
+        super().__init__("The access token has expired.")
+
+
+class AuthenticationTokenMissingException(BaseDomainException):
+    """Exception raised when authentication token is missing."""
+
+    def __init__(self) -> None:
+        """Initializes the AuthenticationTokenMissingException."""
+        super().__init__("Authentication token is missing.")

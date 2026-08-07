@@ -5,6 +5,8 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from src.shared.domain.exceptions.authentication_authorization_exception import (
+    AuthenticationTokenMissingException,
+    ExpiredAccessTokenException,
     InvalidAccessTokenException,
     InvalidAccessTokenPayloadException,
 )
@@ -81,6 +83,64 @@ def authentication_authorization_exception_handlers(app: FastAPI) -> None:
                 ErrorsResponseSchema(
                     message=str(exc),
                     details=exc.error,
+                ),
+                exclude_none=True,
+            ),
+        )
+
+    @app.exception_handler(ExpiredAccessTokenException)
+    async def expired_access_token_exception_handler(
+        request: Request, exc: ExpiredAccessTokenException
+    ) -> JSONResponse:
+        """Expired access token exception handler.
+
+        Args:
+            request (Request): The request object.
+            exc (ExpiredAccessTokenException): The ExpiredAccessTokenException exception.
+
+        Returns:
+            JSONResponse: The JSON response with the appropriate status code and message.
+        """
+        _logger.error(
+            "Expired access token exception occurred while processing request.",
+            request_method=request.method,
+            request_path=request.url.path,
+            exception_message=exc,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content=jsonable_encoder(
+                ErrorsResponseSchema(
+                    message=str(exc),
+                ),
+                exclude_none=True,
+            ),
+        )
+
+    @app.exception_handler(AuthenticationTokenMissingException)
+    async def authentication_token_missing_exception_handler(
+        request: Request, exc: AuthenticationTokenMissingException
+    ) -> JSONResponse:
+        """Authentication token missing exception handler.
+
+        Args:
+            request (Request): The request object.
+            exc (AuthenticationTokenMissingException): The AuthenticationTokenMissingException exception.
+
+        Returns:
+            JSONResponse: The JSON response with the appropriate status code and message.
+        """
+        _logger.error(
+            "Authentication token missing exception occurred while processing request.",
+            request_method=request.method,
+            request_path=request.url.path,
+            exception_message=exc,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content=jsonable_encoder(
+                ErrorsResponseSchema(
+                    message=str(exc),
                 ),
                 exclude_none=True,
             ),
