@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from src.modules.auth.domain.exceptions.authentication_exception import (
     InvalidAccessTokenResultException,
 )
-from src.modules.auth.domain.value_objects.access_token_vo import AccessTokenVO
+from src.shared.domain.value_objects.access_token_vo import AccessTokenVO
 from src.shared.domain.value_objects.base_value_object import BaseValueObject
 
 

@@ -8,10 +8,10 @@ import pytest
 from src.modules.auth.domain.exceptions.authentication_exception import (
     InvalidAccessTokenPayloadException,
 )
-from src.modules.auth.domain.value_objects.access_token_payload_vo import (
+from src.shared.domain.enums.user_role_enum import UserRoleEnum
+from src.shared.domain.value_objects.access_token_payload_vo import (
     AccessTokenPayloadVO,
 )
-from src.shared.domain.enums.user_role_enum import UserRoleEnum
 
 
 @pytest.fixture

@@ -17,9 +17,9 @@ from src.modules.auth.domain.value_objects.access_token_claims_vo import (
 from src.modules.auth.domain.value_objects.access_token_result_vo import (
     AccessTokenResultVO,
 )
-from src.modules.auth.domain.value_objects.access_token_vo import AccessTokenVO
 from src.shared.domain.enums.user_role_enum import UserRoleEnum
 from src.shared.domain.exceptions.base_domain_exception import BaseDomainException
+from src.shared.domain.value_objects.access_token_vo import AccessTokenVO
 
 
 def _valid_password(faker: Faker) -> str:
