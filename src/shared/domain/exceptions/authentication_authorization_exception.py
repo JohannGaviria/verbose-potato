@@ -43,3 +43,16 @@ class AuthenticationTokenMissingException(BaseDomainException):
     def __init__(self) -> None:
         """Initializes the AuthenticationTokenMissingException."""
         super().__init__("Authentication token is missing.")
+
+
+class InsufficientPermissionsException(BaseDomainException):
+    """Exception raised when user does not have sufficient permissions."""
+
+    def __init__(self, error: str) -> None:
+        """Initializes the InsufficientPermissionsException.
+
+        Args:
+            error (str): The error message.
+        """
+        self.error = error
+        super().__init__("Insufficient permissions.")

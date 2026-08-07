@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from src.shared.domain.exceptions.authentication_authorization_exception import (
     AuthenticationTokenMissingException,
     ExpiredAccessTokenException,
+    InsufficientPermissionsException,
     InvalidAccessTokenException,
     InvalidAccessTokenPayloadException,
 )
@@ -141,6 +142,37 @@ def authentication_authorization_exception_handlers(app: FastAPI) -> None:
             content=jsonable_encoder(
                 ErrorsResponseSchema(
                     message=str(exc),
+                ),
+                exclude_none=True,
+            ),
+        )
+
+    @app.exception_handler(InsufficientPermissionsException)
+    async def insufficient_permissions_exception_handler(
+        request: Request, exc: InsufficientPermissionsException
+    ) -> JSONResponse:
+        """Insufficient permissions exception handler.
+
+        Args:
+            request (Request): The request object.
+            exc (InsufficientPermissionsException): The InsufficientPermissionsException exception.
+
+        Returns:
+            JSONResponse: The JSON response with the appropriate status code and message.
+        """
+        _logger.error(
+            "Insufficient permissions exception occurred while processing request.",
+            request_method=request.method,
+            request_path=request.url.path,
+            exception_message=exc,
+            error=exc.error,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content=jsonable_encoder(
+                ErrorsResponseSchema(
+                    message=str(exc),
+                    details=exc.error,
                 ),
                 exclude_none=True,
             ),
