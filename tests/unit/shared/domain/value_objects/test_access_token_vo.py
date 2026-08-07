@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 from faker import Faker
 
-from src.modules.auth.domain.exceptions.authentication_exception import (
+from src.shared.domain.exceptions.authentication_authorization_exception import (
     InvalidAccessTokenException,
 )
 from src.shared.domain.value_objects.access_token_vo import AccessTokenVO

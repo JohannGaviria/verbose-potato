@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from src.modules.auth.domain.exceptions.authentication_exception import (
+from src.shared.domain.exceptions.authentication_authorization_exception import (
     InvalidAccessTokenException,
 )
 from src.shared.domain.value_objects.base_value_object import BaseValueObject

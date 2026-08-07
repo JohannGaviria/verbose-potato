@@ -7,6 +7,9 @@ from fastapi.responses import JSONResponse
 from src.shared.infrastructure.outbound.structlog_logger_factory_outbound_adapter import (
     StructlogLoggerFactoryOutboundAdapter,
 )
+from src.shared.presentation.api.exceptions.authentication_authorization_exception_handlers import (
+    authentication_authorization_exception_handlers,
+)
 from src.shared.presentation.api.schemas.schema import ErrorsResponseSchema
 
 logger = StructlogLoggerFactoryOutboundAdapter()
@@ -19,6 +22,7 @@ def exception_handlers(app: FastAPI) -> None:
     Args:
         app (FastAPI): The FastAPI application.
     """
+    authentication_authorization_exception_handlers(app)
 
     @app.exception_handler(Exception)
     async def exception_handler(request: Request, exc: Exception) -> JSONResponse:
