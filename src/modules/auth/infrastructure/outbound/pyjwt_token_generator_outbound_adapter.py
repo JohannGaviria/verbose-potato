@@ -11,13 +11,13 @@ from src.modules.auth.domain.ports.outbound.token_generator_outbound_port import
 from src.modules.auth.domain.value_objects.access_token_claims_vo import (
     AccessTokenClaimsVO,
 )
-from src.modules.auth.domain.value_objects.access_token_payload_vo import (
-    AccessTokenPayloadVO,
-)
 from src.modules.auth.domain.value_objects.access_token_result_vo import (
     AccessTokenResultVO,
 )
-from src.modules.auth.domain.value_objects.access_token_vo import AccessTokenVO
+from src.shared.domain.value_objects.access_token_payload_vo import (
+    AccessTokenPayloadVO,
+)
+from src.shared.domain.value_objects.access_token_vo import AccessTokenVO
 
 
 class PyJWTTokenGeneratorOutboundAdapter(TokenGeneratorOutboundPort):

@@ -5,8 +5,12 @@ from collections.abc import AsyncIterator
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.shared.infrastructure.cache.redis_client import redis_client
 from src.shared.infrastructure.database.database import db
+from src.shared.infrastructure.outbound.pyjwt_toke_decode_outbound_adapter import (
+    PyJWTTokenDecodeOutboundAdapter,
+)
 from src.shared.infrastructure.outbound.structlog_logger_factory_outbound_adapter import (
     StructlogLoggerFactoryOutboundAdapter,
 )
@@ -38,3 +42,15 @@ async def get_redis() -> Redis:
         Redis: The Redis client.
     """
     return redis_client.client
+
+
+def get_token_decode_outbound() -> PyJWTTokenDecodeOutboundAdapter:
+    """Get the PyJWTTokenDecodeOutboundAdapter instance.
+
+    Returns:
+        PyJWTTokenDecodeOutboundAdapter: The PyJWTTokenDecodeOutboundAdapter instance.
+    """
+    return PyJWTTokenDecodeOutboundAdapter(
+        jwt_secret_key=settings.JWT_SECRET_KEY,
+        jwt_algorithm=settings.JWT_ALGORITHM,
+    )
