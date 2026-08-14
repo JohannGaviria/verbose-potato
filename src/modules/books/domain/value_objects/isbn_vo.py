@@ -49,7 +49,7 @@ class IsbnVO(BaseValueObject):
         if len(cleaned) == 10:
             if not self._is_valid_isbn10(cleaned):
                 raise InvalidIsbnException("ISBN-10 cannot be valid.", self.isbn)
-        if len(cleaned) == 13:
+        elif len(cleaned) == 13:
             if not self._is_valid_isbn13(cleaned):
                 raise InvalidIsbnException("ISBN-13 cannot be valid.", self.isbn)
         else:

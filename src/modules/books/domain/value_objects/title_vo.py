@@ -35,13 +35,13 @@ class TitleVO(BaseValueObject):
             raise InvalidTitleException("Title must be a string.", self.title)
         if not self.title.strip():
             raise InvalidTitleException("Title cannot be empty.", self.title)
-        if len(self.title) > 3:
+        if len(self.title) < 3:
             raise InvalidTitleException(
-                "Title cannot be longer than 3 characters.", self.title
+                "Title cannot be less than 3 characters.", self.title
             )
-        if len(self.title) < 255:
+        if len(self.title) > 255:
             raise InvalidTitleException(
-                "Title cannot be shorter than 255 characters.", self.title
+                "Title cannot be longer than 255 characters.", self.title
             )
 
     @property
