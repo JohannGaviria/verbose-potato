@@ -76,3 +76,26 @@ class InvalidIsbnException(BaseDomainException):
         self.error = error
         self.isbn = isbn
         super().__init__("Invalid isbn provided.")
+
+
+class ISBNAlreadyRegisteredException(BaseDomainException):
+    """Exception raised when the isbn is already registered."""
+
+    def __init__(self) -> None:
+        """Initialize the ISBNAlreadyRegisteredException."""
+        super().__init__("ISBN already registered.")
+
+
+class InvalidBookCatalogQueryException(BaseDomainException):
+    """Exception raised when the book catalog query is invalid."""
+
+    def __init__(self, error: str, query: str | int) -> None:
+        """Initialize the InvalidBookCatalogQueryException.
+
+        Args:
+            error (str): The error message.
+            query (str): the invalid book catalog.
+        """
+        self.error = error
+        self.query = query
+        super().__init__("Invalid book catalog query provided.")

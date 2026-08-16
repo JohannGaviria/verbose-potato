@@ -2,8 +2,9 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
 from uuid import UUID
+
+from src.modules.books.domain.entities.book_entity import BookEntity
 
 
 @dataclass(frozen=True, slots=True)
@@ -14,14 +15,14 @@ class RegistrationNewBookCommandDto:
         title (str): The title of the book.
         isbn (str): The ISBN of the book.
         author (str): The author of the book.
-        publisher_year (str): The year of publication of the book.
+        published_year (int): The year of publication of the book.
         total_copies (int): The total number of copies of the book.
     """
 
     title: str
     isbn: str
     author: str
-    publisher_year: str
+    published_year: int
     total_copies: int
 
 
@@ -34,7 +35,7 @@ class RegistrationNewBookResponseDto:
         title (str): The title of the book.
         isbn (str): The ISBN of the book.
         author (str): The author of the book.
-        publisher_year (str): The year of publication of the book.
+        published_year (int): The year of publication of the book.
         total_copies (int): The total number of copies of the book.
         available_copies (int): The number of available copies of the book.
         created_at (datetime): The date and time when the book was created.
@@ -45,18 +46,18 @@ class RegistrationNewBookResponseDto:
     title: str
     isbn: str
     author: str
-    publisher_year: str
+    published_year: int
     total_copies: int
     available_copies: int
     created_at: datetime
     updated_at: datetime
 
     @classmethod
-    def response(cls, book: Any) -> "RegistrationNewBookResponseDto":
+    def response(cls, book: BookEntity) -> "RegistrationNewBookResponseDto":
         """Factory method for the response DTO.
 
         Args:
-            book: The book to be converted to a response DTO.
+            book (BookEntity): The book to be converted to a response DTO.
 
         Returns:
             RegistrationNewBookResponseDto: The new instance of the response DTO.
@@ -66,9 +67,9 @@ class RegistrationNewBookResponseDto:
             title=book.title.value,
             isbn=book.isbn.value,
             author=book.author.value,
-            publisher_year=book.publisher_year.value,
+            published_year=book.published_year.value,
             total_copies=book.total_copies.value,
-            available_copies=book.available_copies.value,
+            available_copies=book.available_copies,
             created_at=book.created_at,
             updated_at=book.updated_at,
         )
