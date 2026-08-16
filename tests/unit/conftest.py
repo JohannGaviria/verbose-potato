@@ -46,3 +46,20 @@ def user_unit_of_work_mock() -> AsyncMock:
     uow.users = AsyncMock()
 
     return uow
+
+
+@pytest.fixture
+def book_unit_of_work_mock() -> AsyncMock:
+    uow = AsyncMock()
+
+    uow.__aenter__.return_value = uow
+    uow.__aexit__.return_value = None
+
+    uow.books = AsyncMock()
+
+    return uow
+
+
+@pytest.fixture
+def cache_outbound_mock() -> AsyncMock:
+    return AsyncMock()
