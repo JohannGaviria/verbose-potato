@@ -1,4 +1,4 @@
-"""This module contains the security composition."""
+"""This module contains the security compositions."""
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
