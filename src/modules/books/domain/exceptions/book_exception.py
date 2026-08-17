@@ -99,3 +99,16 @@ class InvalidBookCatalogQueryException(BaseDomainException):
         self.error = error
         self.query = query
         super().__init__("Invalid book catalog query provided.")
+
+
+class BookRepositoryException(BaseDomainException):
+    """Exception raised when the repository is invalid."""
+
+    def __init__(self, error: str) -> None:
+        """Initialize the BookRepositoryException.
+
+        Args:
+            error (str): The error message.
+        """
+        self.error = error
+        super().__init__("Error while interacting with the book repository.")

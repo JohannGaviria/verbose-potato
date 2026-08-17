@@ -10,6 +10,9 @@ from src.config import settings
 from src.modules.auth.infrastructure.persistence.models.user_model import (
     UserModel,  # noqa: F401
 )
+from src.modules.books.infrastructure.persistence.models.book_model import (
+    BookModel,  # noqa: F401
+)
 from src.shared.infrastructure.persistence.models.base_model import Base
 
 
