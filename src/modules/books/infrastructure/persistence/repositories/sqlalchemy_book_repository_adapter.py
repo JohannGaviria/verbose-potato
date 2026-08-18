@@ -1,5 +1,7 @@
 """This module contains the SQLAlchemy book repository adapter."""
 
+from uuid import UUID
+
 from sqlalchemy import exists, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,6 +35,31 @@ class SQLAlchemyBookRepositoryAdapter(BookRepositoryPort):
         """
         self._session = session
         self._logger = logger_factory_outbound.get_logger(__name__)
+
+    async def find_by_id(self, book_id: UUID) -> BookEntity | None:
+        """Find a book by its ID.
+
+        Args:
+            book_id (UUID): The book entity to be found.
+
+        Returns:
+            BookEntity | None: The book entity found or None if not found.
+
+        Raises:
+            BookRepositoryException: If an error occurs while finding the book.
+        """
+        try:
+            stmt = select(BookModel).where(BookModel.id == book_id)
+            result = await self._session.execute(stmt)
+            model = result.scalar_one_or_none()
+            return BookPersistenceMapper.to_entity(model) if model else None
+
+        except SQLAlchemyError as exc:
+            self._logger.error(
+                "Error while finding book by id.",
+                error=str(exc),
+            )
+            raise BookRepositoryException("Error while finding book by id.") from exc
 
     async def exists_by_isbn(self, isbn: IsbnVO) -> bool:
         """Check if a book exists with an ISBN.
@@ -90,3 +117,32 @@ class SQLAlchemyBookRepositoryAdapter(BookRepositoryPort):
             raise BookRepositoryException(
                 "Database error during book creation."
             ) from exc
+
+    async def update(self, entity: BookEntity) -> BookEntity:
+        """Updates a BookEntity within the current transaction and returns it.
+
+        Args:
+            entity (BookEntity): The book entity to be updated.
+
+        Returns:
+            BookEntity: The updated book entity.
+
+        Raises:
+            BookRepositoryException: If an error occurs while updating the book.
+        """
+        try:
+            model = BookPersistenceMapper.to_model(entity)
+            merged_model = await self._session.merge(model)
+            await self._session.flush()
+            await self._session.refresh(merged_model)
+            return BookPersistenceMapper.to_entity(merged_model)
+
+        except IntegrityError as exc:
+            self._logger.error("Integrity error while updating book", exc_info=str(exc))
+            raise BookRepositoryException(
+                "Book already exists or violates constraints"
+            ) from exc
+
+        except SQLAlchemyError as exc:
+            self._logger.error("Database error while updating book", exc_info=str(exc))
+            raise BookRepositoryException("Database error during book update.") from exc
