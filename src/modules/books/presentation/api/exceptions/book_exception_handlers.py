@@ -5,6 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from src.modules.books.domain.exceptions.book_exception import (
+    BookNotFoundException,
     BookRepositoryException,
     ISBNAlreadyRegisteredException,
     InvalidAuthorException,
@@ -211,6 +212,35 @@ def book_exception_handlers(app: FastAPI) -> None:
         )
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
+            content=jsonable_encoder(
+                ErrorsResponseSchema(
+                    message=str(exc),
+                ),
+                exclude_none=True,
+            ),
+        )
+
+    @app.exception_handler(BookNotFoundException)
+    async def book_not_found_exception_handler(
+        request: Request, exc: BookNotFoundException
+    ) -> JSONResponse:
+        """Book not found exception handler.
+
+        Args:
+            request (Request): The request object.
+            exc (BookNotFoundException): The BookNotFoundException exception.
+
+        Returns:
+            JSONResponse: The JSON response with the appropriate status code and message.
+        """
+        _logger.error(
+            "Book not found exception occurred while processing request.",
+            request_method=request.method,
+            request_path=request.url.path,
+            exception_message=exc,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
             content=jsonable_encoder(
                 ErrorsResponseSchema(
                     message=str(exc),
