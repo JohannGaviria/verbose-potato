@@ -1,6 +1,7 @@
 """This module contains the book repository port."""
 
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from src.modules.books.domain.entities.book_entity import BookEntity
 from src.modules.books.domain.value_objects.isbn_vo import IsbnVO
@@ -8,6 +9,18 @@ from src.modules.books.domain.value_objects.isbn_vo import IsbnVO
 
 class BookRepositoryPort(ABC):
     """Repository port of book entity."""
+
+    @abstractmethod
+    async def find_by_id(self, book_id: UUID) -> BookEntity | None:
+        """Find a book by its ID.
+
+        Args:
+            book_id (UUID): The book entity to be found.
+
+        Returns:
+            BookEntity: The book entity found or None if not found.
+        """
+        pass
 
     @abstractmethod
     async def exists_by_isbn(self, isbn: IsbnVO) -> bool:
@@ -30,5 +43,17 @@ class BookRepositoryPort(ABC):
 
         Returns:
             BookEntity: The saved book entity.
+        """
+        pass
+
+    @abstractmethod
+    async def update(self, entity: BookEntity) -> BookEntity:
+        """Update a book entity.
+
+        Args:
+            entity (BookEntity): The book entity to be updated.
+
+        Returns:
+            BookEntity: The updated book entity.
         """
         pass
