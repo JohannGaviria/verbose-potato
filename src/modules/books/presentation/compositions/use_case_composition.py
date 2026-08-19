@@ -1,5 +1,8 @@
 """This module contains the use case composition."""
 
+from src.modules.books.application.use_cases.delete_book_use_case import (
+    DeleteBookUseCase,
+)
 from src.modules.books.application.use_cases.registration_new_book_use_case import (
     RegistrationNewBookUseCase,
 )
@@ -35,6 +38,19 @@ def get_update_book_use_case() -> UpdateBookUseCase:
         UpdateBookUseCase: The UpdateBookUseCase instance.
     """
     return UpdateBookUseCase(
+        logger_factory_outbound=get_logger_factory_outbound(),
+        book_unit_of_work=get_book_unit_of_work(),
+        cache_outbound=get_book_cache_outbound(),
+    )
+
+
+def get_delete_book_use_case() -> DeleteBookUseCase:
+    """Get the DeleteBookUseCase instance.
+
+    Returns:
+        DeleteBookUseCase: The DeleteBookUseCase instance.
+    """
+    return DeleteBookUseCase(
         logger_factory_outbound=get_logger_factory_outbound(),
         book_unit_of_work=get_book_unit_of_work(),
         cache_outbound=get_book_cache_outbound(),
