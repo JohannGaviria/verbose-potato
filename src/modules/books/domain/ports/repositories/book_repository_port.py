@@ -57,3 +57,12 @@ class BookRepositoryPort(ABC):
             BookEntity: The updated book entity.
         """
         pass
+
+    @abstractmethod
+    async def delete(self, book_id: UUID) -> None:
+        """Delete a book entity.
+
+        Args:
+            book_id (UUID): The book entity to be deleted.
+        """
+        pass
