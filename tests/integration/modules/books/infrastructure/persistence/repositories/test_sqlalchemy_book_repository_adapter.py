@@ -282,3 +282,72 @@ class TestSQLAlchemyBookRepositoryAdapter:
             ):
                 with pytest.raises(BookRepositoryException):
                     await book_repository.update(entity)
+
+    class TestDelete:
+        async def test_should_remove_book_when_book_exists(
+            self,
+            book_repository: SQLAlchemyBookRepositoryAdapter,
+            db_session: AsyncSession,
+            make_book_entity: BookEntityFactory,
+        ) -> None:
+            entity = make_book_entity()
+            await book_repository.save(entity)
+
+            await book_repository.delete(entity.id)
+
+            persisted = await db_session.get(BookModel, entity.id)
+            assert persisted is None
+
+        async def test_should_not_affect_other_books_when_deleting_one_book(
+            self,
+            book_repository: SQLAlchemyBookRepositoryAdapter,
+            db_session: AsyncSession,
+            make_book_entity: BookEntityFactory,
+        ) -> None:
+            entity_to_delete = make_book_entity()
+            entity_to_keep = make_book_entity()
+            await book_repository.save(entity_to_delete)
+            await book_repository.save(entity_to_keep)
+
+            await book_repository.delete(entity_to_delete.id)
+
+            assert await db_session.get(BookModel, entity_to_delete.id) is None
+            assert await db_session.get(BookModel, entity_to_keep.id) is not None
+
+        async def test_should_not_raise_when_book_does_not_exist(
+            self,
+            book_repository: SQLAlchemyBookRepositoryAdapter,
+        ) -> None:
+            await book_repository.delete(uuid4())
+
+        async def test_should_raise_book_repository_exception_when_a_database_error_occurs_on_execute(
+            self,
+            book_repository: SQLAlchemyBookRepositoryAdapter,
+            make_book_entity: BookEntityFactory,
+        ) -> None:
+            entity = make_book_entity()
+            await book_repository.save(entity)
+
+            with patch.object(
+                book_repository._session,
+                "execute",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(BookRepositoryException):
+                    await book_repository.delete(entity.id)
+
+        async def test_should_raise_book_repository_exception_when_a_database_error_occurs_on_flush(
+            self,
+            book_repository: SQLAlchemyBookRepositoryAdapter,
+            make_book_entity: BookEntityFactory,
+        ) -> None:
+            entity = make_book_entity()
+            await book_repository.save(entity)
+
+            with patch.object(
+                book_repository._session,
+                "flush",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(BookRepositoryException):
+                    await book_repository.delete(entity.id)

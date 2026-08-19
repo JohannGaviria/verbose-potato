@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from sqlalchemy import exists, select
+from sqlalchemy import delete, exists, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -146,3 +146,23 @@ class SQLAlchemyBookRepositoryAdapter(BookRepositoryPort):
         except SQLAlchemyError as exc:
             self._logger.error("Database error while updating book", exc_info=str(exc))
             raise BookRepositoryException("Database error during book update.") from exc
+
+    async def delete(self, book_id: UUID) -> None:
+        """Deletes a book entity within the current transaction.
+
+        Args:
+            book_id (UUID): The book entity to be deleted.
+
+        Raises:
+            BookRepositoryException: If an error occurs while deleting the book.
+        """
+        try:
+            stmt = delete(BookModel).where(BookModel.id == book_id)
+            await self._session.execute(stmt)
+            await self._session.flush()
+
+        except SQLAlchemyError as exc:
+            self._logger.error("Database error while deleting book", exc_info=str(exc))
+            raise BookRepositoryException(
+                "Database error during book deletion."
+            ) from exc
