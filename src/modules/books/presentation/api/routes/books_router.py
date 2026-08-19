@@ -2,7 +2,10 @@
 
 from fastapi import APIRouter
 
-from src.modules.books.presentation.api.routes import registration_new_book_router
+from src.modules.books.presentation.api.routes import (
+    registration_new_book_router,
+    update_book_router,
+)
 
 router = APIRouter(
     prefix="/api/v1/books",
@@ -11,3 +14,4 @@ router = APIRouter(
 
 
 router.include_router(registration_new_book_router.router)
+router.include_router(update_book_router.router)

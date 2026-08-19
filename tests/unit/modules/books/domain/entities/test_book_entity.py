@@ -4,6 +4,9 @@ import pytest
 from faker import Faker
 
 from src.modules.books.domain.entities.book_entity import BookEntity
+from src.modules.books.domain.exceptions.book_exception import (
+    InvalidTotalCopiesException,
+)
 from src.modules.books.domain.value_objects.author_vo import AuthorVO
 from src.modules.books.domain.value_objects.isbn_vo import IsbnVO
 from src.modules.books.domain.value_objects.published_year_vo import PublishedYearVO
@@ -124,3 +127,116 @@ class TestBookEntity:
         book2 = _build_book_entity(faker)
 
         assert book1 != book2
+
+    def test_should_update_only_provided_fields_when_partial_data_is_given(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker)
+        new_title = TitleVO(faker.sentence(nb_words=4))
+
+        updated_book = book.update(title=new_title)
+
+        assert updated_book.title == new_title
+        assert updated_book.author == book.author
+        assert updated_book.published_year == book.published_year
+        assert updated_book.total_copies == book.total_copies
+
+    def test_should_update_all_fields_when_full_data_is_given(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+
+        new_title = TitleVO(faker.sentence(nb_words=4))
+        new_author = AuthorVO(faker.name())
+        new_published_year = PublishedYearVO(2015)
+        new_total_copies = TotalCopiesVO(10)
+
+        updated_book = book.update(
+            title=new_title,
+            author=new_author,
+            published_year=new_published_year,
+            total_copies=new_total_copies,
+        )
+
+        assert updated_book.title == new_title
+        assert updated_book.author == new_author
+        assert updated_book.published_year == new_published_year
+        assert updated_book.total_copies == new_total_copies
+
+    def test_should_keep_original_values_when_no_fields_are_provided(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker)
+
+        updated_book = book.update()
+
+        assert updated_book.title == book.title
+        assert updated_book.author == book.author
+        assert updated_book.published_year == book.published_year
+        assert updated_book.total_copies == book.total_copies
+
+    def test_should_keep_id_isbn_and_available_copies_unchanged_when_updated(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+
+        updated_book = book.update(total_copies=TotalCopiesVO(10))
+
+        assert updated_book.id == book.id
+        assert updated_book.isbn == book.isbn
+        assert updated_book.available_copies == book.available_copies
+
+    def test_should_keep_created_at_unchanged_when_book_is_updated(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker)
+
+        updated_book = book.update(title=TitleVO(faker.sentence(nb_words=4)))
+
+        assert updated_book.created_at == book.created_at
+
+    def test_should_refresh_updated_at_when_book_is_updated(self, faker: Faker) -> None:
+        book = _build_book_entity(faker)
+
+        updated_book = book.update(title=TitleVO(faker.sentence(nb_words=4)))
+
+        assert updated_book.updated_at >= book.updated_at
+
+    def test_should_return_new_instance_without_mutating_original_book(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker)
+        original_title = book.title
+
+        updated_book = book.update(title=TitleVO(faker.sentence(nb_words=4)))
+
+        assert updated_book is not book
+        assert book.title == original_title
+
+    def test_should_raise_exception_when_total_copies_is_less_than_available_copies(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+
+        with pytest.raises(InvalidTotalCopiesException):
+            book.update(total_copies=TotalCopiesVO(book.available_copies - 1))
+
+    def test_should_update_total_copies_when_equal_to_available_copies(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+
+        updated_book = book.update(total_copies=TotalCopiesVO(book.available_copies))
+
+        assert updated_book.total_copies.value == book.available_copies
+
+    def test_should_update_total_copies_when_greater_than_available_copies(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+
+        updated_book = book.update(
+            total_copies=TotalCopiesVO(book.available_copies + 5)
+        )
+
+        assert updated_book.total_copies.value == book.available_copies + 5

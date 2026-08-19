@@ -112,3 +112,11 @@ class BookRepositoryException(BaseDomainException):
         """
         self.error = error
         super().__init__("Error while interacting with the book repository.")
+
+
+class BookNotFoundException(BaseDomainException):
+    """Exception raised when the book is not found."""
+
+    def __init__(self) -> None:
+        """Initialize the BookNotFoundException."""
+        super().__init__("Book not found.")
