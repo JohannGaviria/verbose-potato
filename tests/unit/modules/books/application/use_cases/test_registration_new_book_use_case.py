@@ -15,7 +15,7 @@ from src.modules.books.application.use_cases.registration_new_book_use_case impo
 from src.modules.books.domain.exceptions.book_exception import (
     ISBNAlreadyRegisteredException,
 )
-from src.modules.books.domain.value_objects.book_catalog_cache_key import (
+from src.modules.books.domain.value_objects.book_catalog_cache_key_vo import (
     BookCatalogCacheKeyVO,
 )
 from src.shared.application.dtos.authenticated_user_dto import (

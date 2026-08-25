@@ -18,7 +18,7 @@ from src.modules.books.domain.exceptions.book_exception import (
     InvalidTotalCopiesException,
 )
 from src.modules.books.domain.value_objects.author_vo import AuthorVO
-from src.modules.books.domain.value_objects.book_catalog_cache_key import (
+from src.modules.books.domain.value_objects.book_catalog_cache_key_vo import (
     BookCatalogCacheKeyVO,
 )
 from src.modules.books.domain.value_objects.isbn_vo import IsbnVO

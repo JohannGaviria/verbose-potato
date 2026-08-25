@@ -89,15 +89,15 @@ class ISBNAlreadyRegisteredException(BaseDomainException):
 class InvalidBookCatalogQueryException(BaseDomainException):
     """Exception raised when the book catalog query is invalid."""
 
-    def __init__(self, error: str, query: str | int) -> None:
+    def __init__(self, error: str, filter: str | int | bool) -> None:
         """Initialize the InvalidBookCatalogQueryException.
 
         Args:
             error (str): The error message.
-            query (str): the invalid book catalog.
+            filter (str): The invalid filter for the book catalog.
         """
         self.error = error
-        self.query = query
+        self.filter = filter
         super().__init__("Invalid book catalog query provided.")
 
 
