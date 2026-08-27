@@ -56,43 +56,43 @@ class RedisCacheOutboundAdapter[CacheValueType: CacheValueVO](
                 the cache key if found, otherwise None.
         """
         try:
-            value = await self._redis_client.get(str(key))
+            value = await self._redis_client.get(key.value())
             if value is None:
-                self._logger.debug("Cache entry not found for key.", key=str(key))
+                self._logger.debug("Cache entry not found for key.", key=key.value())
                 return None
             data = json.loads(value)
 
             self._logger.debug(
-                "Cache entry retrieved successfully for key.", key=str(key)
+                "Cache entry retrieved successfully for key.", key=key.value()
             )
 
             return self._factory(data)
         except json.JSONDecodeError as exc:
             self._logger.error(
                 "Failed to decode JSON from cache for key.",
-                key=str(key),
+                key=key.value(),
                 exc_info=str(exc),
             )
             raise CacheRetrievalException(
-                f"Failed to decode JSON from cache for key: {str(key)}"
+                f"Failed to decode JSON from cache for key: {key.value()}"
             ) from exc
         except RedisError as exc:
             self._logger.error(
                 "Redis error occurred while retrieving cache for key.",
-                key=str(key),
+                key=key.value(),
                 exc_info=str(exc),
             )
             raise CacheRetrievalException(
-                f"Redis error occurred while retrieving cache for key: {str(key)}"
+                f"Redis error occurred while retrieving cache for key: {key.value()}"
             ) from exc
         except Exception as exc:
             self._logger.error(
                 "Unexpected error occurred while retrieving cache for key.",
-                key=str(key),
+                key=key.value(),
                 exc_info=str(exc),
             )
             raise CacheRetrievalException(
-                f"Unexpected error occurred while retrieving cache for key: {str(key)}"
+                f"Unexpected error occurred while retrieving cache for key: {key.value()}"
             ) from exc
 
     async def set(self, entry: CacheEntryVO[CacheValueType]) -> None:
@@ -108,69 +108,88 @@ class RedisCacheOutboundAdapter[CacheValueType: CacheValueVO](
         """
         try:
             await self._redis_client.set(
-                name=str(entry.key),
+                name=entry.key.value(),
                 value=json.dumps(entry.value.to_dict()),
                 ex=entry.ttl.seconds,
             )
             self._logger.debug(
-                "Cache entry stored successfully for key.", key=str(entry.key)
+                "Cache entry stored successfully for key.", key=entry.key.value()
             )
         except (TypeError, ValueError) as exc:
             self._logger.error(
                 "Failed to serialize cache value to JSON for key.",
-                key=str(entry.key),
+                key=entry.key.value(),
                 exc_info=str(exc),
             )
             raise CacheStorageException(
-                f"Failed to serialize cache value to JSON for key: {str(entry.key)}"
+                f"Failed to serialize cache value to JSON for key: {entry.key.value()}"
             ) from exc
         except RedisError as exc:
             self._logger.error(
                 "Redis error occurred while storing cache for key.",
-                key=str(entry.key),
+                key=entry.key.value(),
                 exc_info=str(exc),
             )
             raise CacheStorageException(
-                f"Redis error occurred while storing cache for key: {str(entry.key)}"
+                f"Redis error occurred while storing cache for key: {entry.key.value()}"
             ) from exc
         except Exception as exc:
             self._logger.error(
                 "Unexpected error occurred while storing cache for key.",
-                key=str(entry.key),
+                key=entry.key.value(),
                 exc_info=str(exc),
             )
             raise CacheStorageException(
-                f"Unexpected error occurred while storing cache for key: {str(entry.key)}"
+                f"Unexpected error occurred while storing cache for key: {entry.key.value()}"
             ) from exc
 
     async def delete(self, key: CacheKeyVO) -> None:
-        """Deletes a cache entry from Redis based on the provided cache key.
+        """Deletes one or multiple cache entries from Redis.
+
+        If the provided key represents a cache namespace (for example,
+        ``cache:books:catalog``), all cache entries with that prefix are removed.
+        Otherwise, only the exact cache key is deleted.
 
         Args:
             key (CacheKeyVO): The cache key of the entry to be deleted.
 
         Raises:
-            CacheDeletionException: If there is an error during the deletion process,
-                such as a Redis error or an unexpected exception.
+        CacheDeletionException: If there is an error during the deletion process,
+            such as a Redis error or an unexpected exception.
         """
         try:
-            await self._redis_client.delete(str(key))
-            self._logger.info("Cache entry deleted successfully for key.", key=str(key))
+            key_value = key.value()
+
+            # Delete the exact key first.
+            deleted_keys = await self._redis_client.delete(key_value)
+
+            # Delete all derived keys under the namespace.
+            pattern = f"{key_value}:*"
+            keys = [k async for k in self._redis_client.scan_iter(match=pattern)]
+
+            if keys:
+                deleted_keys += await self._redis_client.delete(*keys)
+
+            self._logger.info(
+                "Cache entries deleted successfully.",
+                key=key_value,
+                deleted_keys=deleted_keys,
+            )
         except RedisError as exc:
             self._logger.error(
                 "Redis error occurred while deleting cache for key.",
-                key=str(key),
+                key=key.value(),
                 exc_info=str(exc),
             )
             raise CacheDeletionException(
-                f"Redis error occurred while deleting cache for key: {str(key)}"
+                f"Redis error occurred while deleting cache for key: {key.value()}"
             ) from exc
         except Exception as exc:
             self._logger.error(
                 "Unexpected error occurred while deleting cache for key.",
-                key=str(key),
+                key=key.value(),
                 exc_info=str(exc),
             )
             raise CacheDeletionException(
-                f"Unexpected error occurred while deleting cache for key: {str(key)}"
+                f"Unexpected error occurred while deleting cache for key: {key.value()}"
             ) from exc

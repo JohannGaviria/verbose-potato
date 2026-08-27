@@ -12,6 +12,9 @@ from src.modules.books.domain.value_objects.author_vo import AuthorVO
 from src.modules.books.domain.value_objects.book_catalog_cache_key_vo import (
     BookCatalogCacheKeyVO,
 )
+from src.modules.books.domain.value_objects.book_catalog_cache_value_vo import (
+    BookCatalogCacheValueVO,
+)
 from src.modules.books.domain.value_objects.published_year_vo import PublishedYearVO
 from src.modules.books.domain.value_objects.title_vo import TitleVO
 from src.modules.books.domain.value_objects.total_copies_vo import TotalCopiesVO
@@ -34,14 +37,15 @@ class UpdateBookUseCase:
         self,
         logger_factory_outbound: LoggerFactoryOutboundPort,
         book_unit_of_work: BookUnitOfWorkPort,
-        cache_outbound: CacheOutboundPort,
+        cache_outbound: CacheOutboundPort[BookCatalogCacheValueVO],
     ) -> None:
         """Initialize the UpdateBookUseCase.
 
         Args:
             logger_factory_outbound (LoggerFactoryOutboundPort): Factory used to create the logger instance.
             book_unit_of_work (BookUnitOfWorkPort): Unit of work used to persist book entities.
-            cache_outbound (CacheOutboundPort): Factory used to create the cache instance.
+            cache_outbound (CacheOutboundPort[BookCatalogCacheValueVO]): Factory used to create
+                the cache instance.
         """
         self._logger = logger_factory_outbound.get_logger(__name__)
         self._book_unit_of_work = book_unit_of_work
