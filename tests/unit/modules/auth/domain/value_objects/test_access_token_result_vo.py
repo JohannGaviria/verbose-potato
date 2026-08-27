@@ -10,7 +10,7 @@ from src.modules.auth.domain.exceptions.authentication_exception import (
 from src.modules.auth.domain.value_objects.access_token_result_vo import (
     AccessTokenResultVO,
 )
-from src.modules.auth.domain.value_objects.access_token_vo import AccessTokenVO
+from src.shared.domain.value_objects.access_token_vo import AccessTokenVO
 
 
 @pytest.fixture

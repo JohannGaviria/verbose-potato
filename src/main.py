@@ -11,9 +11,15 @@ from src.config import settings
 from src.modules.auth.presentation.api.exceptions.auth_exception_handlers import (
     auth_exception_handlers,
 )
-from src.modules.auth.presentation.api.routes import auth_router
+from src.modules.auth.presentation.api.routes.auth_router import router as auth_router
 from src.modules.auth.presentation.compositions.runner_composition import (
     get_create_first_librarian_runner,
+)
+from src.modules.books.presentation.api.exceptions.book_exception_handlers import (
+    book_exception_handlers,
+)
+from src.modules.books.presentation.api.routes.books_router import (
+    router as books_router,
 )
 from src.shared.infrastructure.cache.redis_client import redis_client
 from src.shared.infrastructure.database.database import db
@@ -86,10 +92,12 @@ app.add_middleware(CorrelationIdMiddleware)
 # Includes the exception handlers for the API endpoints
 exception_handlers(app)
 auth_exception_handlers(app)
+book_exception_handlers(app)
 
 
 # Includes the routers for the API endpoints
-app.include_router(auth_router.router)
+app.include_router(auth_router)
+app.include_router(books_router)
 
 
 @app.get(

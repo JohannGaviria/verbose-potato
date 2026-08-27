@@ -119,6 +119,33 @@ class TestRedisCacheOutboundAdapter:
 
         await adapter.delete(key)
 
+    async def test_should_store_entry_under_the_plain_key_value_not_its_repr(
+        self,
+        faker: Faker,
+        adapter: RedisCacheOutboundAdapter[DummyCacheValueVO],
+        redis_conn: Redis,
+        cache_key_prefix: str,
+    ) -> None:
+        """Regression test.
+
+        The adapter must use ``key.value()`` (the plain "cache:type:id" string)
+        as the Redis key name. Using ``str(key)``/``str(entry.key)`` instead
+        stores the entry under the dataclass ``repr()``
+        (e.g. "CacheKeyVO(key='cache:test:...')"), which is never readable
+        back through ``key.value()`` and breaks ``SCAN``/``KEYS`` pattern
+        matching against the documented ``cache:{type}:{id}`` format.
+        """
+        key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
+        value = DummyCacheValueVO(name=faker.name(), age=faker.random_int())
+        entry = CacheEntryVO(key=key, ttl=CacheTTLVO(seconds=60), value=value)
+
+        await adapter.set(entry)
+
+        assert await redis_conn.exists(key.value()) == 1
+        assert await redis_conn.exists(str(key)) == 0
+
+        await adapter.delete(key)
+
     async def test_should_apply_ttl_when_set_is_called(
         self,
         faker: Faker,
@@ -131,7 +158,7 @@ class TestRedisCacheOutboundAdapter:
         entry = CacheEntryVO(key=key, ttl=CacheTTLVO(seconds=120), value=value)
 
         await adapter.set(entry)
-        ttl = await redis_conn.ttl(str(key))
+        ttl = await redis_conn.ttl(key.value())
 
         assert 0 < ttl <= 120
 
@@ -153,6 +180,7 @@ class TestRedisCacheOutboundAdapter:
         await adapter.set(
             CacheEntryVO(key=key, ttl=CacheTTLVO(seconds=60), value=second_value)
         )
+
         result = await adapter.get(key)
 
         assert result == second_value
@@ -167,14 +195,142 @@ class TestRedisCacheOutboundAdapter:
     ) -> None:
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
         value = DummyCacheValueVO(name=faker.name(), age=faker.random_int())
+
         await adapter.set(
-            CacheEntryVO(key=key, ttl=CacheTTLVO(seconds=60), value=value)
+            CacheEntryVO(
+                key=key,
+                ttl=CacheTTLVO(seconds=60),
+                value=value,
+            )
         )
 
         await adapter.delete(key)
+
         result = await adapter.get(key)
 
         assert result is None
+
+    async def test_should_remove_exact_key_and_nested_keys_when_delete_is_called(
+        self,
+        faker: Faker,
+        adapter: RedisCacheOutboundAdapter[DummyCacheValueVO],
+        redis_conn: Redis,
+        cache_key_prefix: str,
+    ) -> None:
+        """Should delete the exact key and all keys under its namespace."""
+        prefix = f"cache:test:{cache_key_prefix}"
+        key = CacheKeyVO(key=prefix)
+
+        nested_keys = [
+            CacheKeyVO(key=f"{prefix}:first"),
+            CacheKeyVO(key=f"{prefix}:second"),
+            CacheKeyVO(key=f"{prefix}:third"),
+        ]
+
+        value = DummyCacheValueVO(
+            name=faker.name(),
+            age=faker.random_int(),
+        )
+
+        await adapter.set(
+            CacheEntryVO(
+                key=key,
+                ttl=CacheTTLVO(seconds=60),
+                value=value,
+            )
+        )
+
+        for nested_key in nested_keys:
+            await redis_conn.set(
+                nested_key.value(),
+                '{"name": "nested", "age": 1}',
+            )
+
+        assert await redis_conn.exists(key.value()) == 1
+
+        for nested_key in nested_keys:
+            assert await redis_conn.exists(nested_key.value()) == 1
+
+        await adapter.delete(key)
+
+        assert await redis_conn.exists(key.value()) == 0
+
+        for nested_key in nested_keys:
+            assert await redis_conn.exists(nested_key.value()) == 0
+
+    async def test_should_remove_only_matching_nested_keys_when_delete_is_called(
+        self,
+        adapter: RedisCacheOutboundAdapter[DummyCacheValueVO],
+        redis_conn: Redis,
+        cache_key_prefix: str,
+    ) -> None:
+        """Should not delete keys outside the requested namespace."""
+        prefix = f"cache:test:{cache_key_prefix}"
+        key = CacheKeyVO(key=prefix)
+
+        matching_keys = [
+            f"{prefix}:first",
+            f"{prefix}:second",
+            f"{prefix}:third",
+        ]
+
+        non_matching_key = f"cache:other:{cache_key_prefix}:first"
+
+        for nested_key in matching_keys:
+            await redis_conn.set(
+                nested_key,
+                '{"name": "nested", "age": 1}',
+            )
+
+        await redis_conn.set(
+            non_matching_key,
+            '{"name": "other", "age": 2}',
+        )
+
+        await adapter.delete(key)
+
+        for nested_key in matching_keys:
+            assert await redis_conn.exists(nested_key) == 0
+
+        assert await redis_conn.exists(non_matching_key) == 1
+
+        await redis_conn.delete(non_matching_key)
+
+    async def test_should_remove_all_cache_entries_under_catalog_namespace(
+        self,
+        adapter: RedisCacheOutboundAdapter[DummyCacheValueVO],
+        redis_conn: Redis,
+    ) -> None:
+        """Should invalidate all book catalog cache variants."""
+        catalog_key = CacheKeyVO(key="cache:books:catalog")
+
+        catalog_keys = [
+            "cache:books:catalog:hash-1",
+            "cache:books:catalog:hash-2",
+            "cache:books:catalog:hash-3",
+        ]
+
+        unrelated_key = "cache:books:other:hash-1"
+
+        for cache_key in catalog_keys:
+            await redis_conn.set(
+                cache_key,
+                '{"name": "catalog", "age": 1}',
+            )
+
+        await redis_conn.set(
+            unrelated_key,
+            '{"name": "other", "age": 2}',
+        )
+
+        await adapter.delete(catalog_key)
+
+        for cache_key in catalog_keys:
+            assert await redis_conn.exists(cache_key) == 0
+
+        assert await redis_conn.exists(unrelated_key) == 1
+
+        await redis_conn.delete(unrelated_key)
 
     async def test_should_not_raise_when_delete_is_called_on_missing_key(
         self,
@@ -192,26 +348,32 @@ class TestRedisCacheOutboundAdapter:
         cache_key_prefix: str,
     ) -> None:
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
-        # Write malformed data directly, bypassing the adapter, to simulate corruption.
-        await redis_conn.set(str(key), "not-valid-json")
+
+        # Write malformed data directly, bypassing the adapter, to simulate
+        # cache corruption.
+        await redis_conn.set(key.value(), "not-valid-json")
 
         with pytest.raises(CacheRetrievalException):
             await adapter.get(key)
 
-        await redis_conn.delete(str(key))
+        await redis_conn.delete(key.value())
 
     async def test_should_raise_cache_retrieval_exception_when_redis_is_unreachable(
         self,
         cache_key_prefix: str,
     ) -> None:
         broken_client: Redis = Redis.from_url(
-            "redis://127.0.0.1:1", socket_connect_timeout=1, socket_timeout=1
+            "redis://127.0.0.1:1",
+            socket_connect_timeout=1,
+            socket_timeout=1,
         )
+
         broken_adapter = RedisCacheOutboundAdapter(
             redis_client=broken_client,
             factory=dummy_factory,
             logger_factory_outbound=StructlogLoggerFactoryOutboundAdapter(),
         )
+
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
 
         with pytest.raises(CacheRetrievalException):
@@ -225,16 +387,28 @@ class TestRedisCacheOutboundAdapter:
         cache_key_prefix: str,
     ) -> None:
         broken_client: Redis = Redis.from_url(
-            "redis://127.0.0.1:1", socket_connect_timeout=1, socket_timeout=1
+            "redis://127.0.0.1:1",
+            socket_connect_timeout=1,
+            socket_timeout=1,
         )
+
         broken_adapter = RedisCacheOutboundAdapter(
             redis_client=broken_client,
             factory=dummy_factory,
             logger_factory_outbound=StructlogLoggerFactoryOutboundAdapter(),
         )
+
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
-        value = DummyCacheValueVO(name=faker.name(), age=faker.random_int())
-        entry = CacheEntryVO(key=key, ttl=CacheTTLVO(seconds=60), value=value)
+        value = DummyCacheValueVO(
+            name=faker.name(),
+            age=faker.random_int(),
+        )
+
+        entry = CacheEntryVO(
+            key=key,
+            ttl=CacheTTLVO(seconds=60),
+            value=value,
+        )
 
         with pytest.raises(CacheStorageException):
             await broken_adapter.set(entry)
@@ -246,13 +420,17 @@ class TestRedisCacheOutboundAdapter:
         cache_key_prefix: str,
     ) -> None:
         broken_client: Redis = Redis.from_url(
-            "redis://127.0.0.1:1", socket_connect_timeout=1, socket_timeout=1
+            "redis://127.0.0.1:1",
+            socket_connect_timeout=1,
+            socket_timeout=1,
         )
+
         broken_adapter = RedisCacheOutboundAdapter(
             redis_client=broken_client,
             factory=dummy_factory,
             logger_factory_outbound=StructlogLoggerFactoryOutboundAdapter(),
         )
+
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
 
         with pytest.raises(CacheDeletionException):
@@ -272,9 +450,13 @@ class TestRedisCacheOutboundAdapter:
                 logger_factory_outbound=StructlogLoggerFactoryOutboundAdapter(),
             )
         )
+
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
+
         entry = CacheEntryVO(
-            key=key, ttl=CacheTTLVO(seconds=60), value=UnserializableCacheValueVO()
+            key=key,
+            ttl=CacheTTLVO(seconds=60),
+            value=UnserializableCacheValueVO(),
         )
 
         with pytest.raises(CacheStorageException):
@@ -292,9 +474,13 @@ class TestRedisCacheOutboundAdapter:
                 logger_factory_outbound=StructlogLoggerFactoryOutboundAdapter(),
             )
         )
+
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
+
         entry = CacheEntryVO(
-            key=key, ttl=CacheTTLVO(seconds=60), value=BrokenCacheValueVO()
+            key=key,
+            ttl=CacheTTLVO(seconds=60),
+            value=BrokenCacheValueVO(),
         )
 
         with pytest.raises(CacheStorageException):
@@ -307,8 +493,9 @@ class TestRedisCacheOutboundAdapter:
         cache_key_prefix: str,
     ) -> None:
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
+
         # Store a well-formed entry with the working adapter first, so the
-        # Redis get() and json.loads() calls both succeed for real...
+        # Redis get() and json.loads() calls both succeed for real.
         working_adapter: RedisCacheOutboundAdapter[DummyCacheValueVO] = (
             RedisCacheOutboundAdapter(
                 redis_client=redis_conn,
@@ -316,15 +503,19 @@ class TestRedisCacheOutboundAdapter:
                 logger_factory_outbound=StructlogLoggerFactoryOutboundAdapter(),
             )
         )
+
         await working_adapter.set(
             CacheEntryVO(
                 key=key,
                 ttl=CacheTTLVO(seconds=60),
-                value=DummyCacheValueVO(name=faker.name(), age=faker.random_int()),
+                value=DummyCacheValueVO(
+                    name=faker.name(),
+                    age=faker.random_int(),
+                ),
             )
         )
 
-        # ...and only the reconstruction step (self._factory(data)) fails.
+        # Only the reconstruction step (self._factory(data)) fails.
         broken_adapter: RedisCacheOutboundAdapter[DummyCacheValueVO] = (
             RedisCacheOutboundAdapter(
                 redis_client=redis_conn,
@@ -336,7 +527,7 @@ class TestRedisCacheOutboundAdapter:
         with pytest.raises(CacheRetrievalException):
             await broken_adapter.get(key)
 
-        await redis_conn.delete(str(key))
+        await redis_conn.delete(key.value())
 
     async def test_should_raise_cache_deletion_exception_when_unexpected_error_occurs(
         self,
@@ -349,6 +540,7 @@ class TestRedisCacheOutboundAdapter:
                 logger_factory_outbound=StructlogLoggerFactoryOutboundAdapter(),
             )
         )
+
         key = CacheKeyVO(key=f"cache:test:{cache_key_prefix}")
 
         with pytest.raises(CacheDeletionException):

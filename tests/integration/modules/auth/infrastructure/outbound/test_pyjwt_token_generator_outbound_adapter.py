@@ -11,11 +11,11 @@ from src.modules.auth.domain.value_objects.access_token_claims_vo import (
 from src.modules.auth.domain.value_objects.access_token_result_vo import (
     AccessTokenResultVO,
 )
-from src.modules.auth.domain.value_objects.access_token_vo import AccessTokenVO
 from src.modules.auth.infrastructure.outbound.pyjwt_token_generator_outbound_adapter import (
     PyJWTTokenGeneratorOutboundAdapter,
 )
 from src.shared.domain.enums.user_role_enum import UserRoleEnum
+from src.shared.domain.value_objects.access_token_vo import AccessTokenVO
 
 EXPIRATION_TOLERANCE_SECONDS = 5
 

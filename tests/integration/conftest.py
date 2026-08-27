@@ -16,6 +16,9 @@ from src.shared.domain.ports.outbound.logger_factory_outbound_port import (
 )
 from src.shared.infrastructure.cache.redis_client import redis_client as _redis_client
 from src.shared.infrastructure.database.database import db as _db
+from src.shared.infrastructure.outbound.pyjwt_toke_decode_outbound_adapter import (
+    PyJWTTokenDecodeOutboundAdapter,
+)
 from src.shared.infrastructure.outbound.structlog_logger_factory_outbound_adapter import (
     StructlogLoggerFactoryOutboundAdapter,
 )
@@ -87,3 +90,11 @@ async def db_session(
 def logger_factory_outbound() -> LoggerFactoryOutboundPort:
     """A real structlog-backed logger factory, shared by adapter fixtures."""
     return StructlogLoggerFactoryOutboundAdapter()
+
+
+@pytest.fixture
+def token_decode_outbound() -> PyJWTTokenDecodeOutboundAdapter:
+    return PyJWTTokenDecodeOutboundAdapter(
+        jwt_secret_key=settings.JWT_SECRET_KEY,
+        jwt_algorithm=settings.JWT_ALGORITHM,
+    )
