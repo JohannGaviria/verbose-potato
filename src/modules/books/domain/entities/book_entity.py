@@ -60,6 +60,7 @@ class BookEntity(BaseEntity):
             BookEntity: New book entity.
         """
         now = datetime.now(UTC)
+
         return cls(
             id=uuid4(),
             title=title,
@@ -72,6 +73,17 @@ class BookEntity(BaseEntity):
             updated_at=now,
         )
 
+    def has_active_loans(self) -> bool:
+        """Return whether the book has active loans.
+
+        A book has active loans when at least one of its copies is
+        currently unavailable.
+
+        Returns:
+            bool: True if the book has active loans, otherwise False.
+        """
+        return self.available_copies < self.total_copies.value
+
     def update(
         self,
         title: TitleVO | None = None,
@@ -79,24 +91,24 @@ class BookEntity(BaseEntity):
         published_year: PublishedYearVO | None = None,
         total_copies: TotalCopiesVO | None = None,
     ) -> "BookEntity":
-        """Factory method to update a book entity.
+        """Update the book entity.
 
         Args:
-            title (TitleVO | None): Title of the book.
-            author (AuthorVO | None): Author of the book.
-            published_year (PublishedYearVO | None): Year of publication.
-            total_copies (TotalCopiesVO | None): Total number of registered copies.
+            title (TitleVO | None): New title.
+            author (AuthorVO | None): New author.
+            published_year (PublishedYearVO | None): New publication year.
+            total_copies (TotalCopiesVO | None): New total number of copies.
 
         Returns:
             BookEntity: The updated book entity.
 
         Raises:
-            InvalidTotalCopiesException: If the total copies cannot be less
-                than currently borrowed copies.
+            InvalidTotalCopiesException: If the new total number of copies
+                is less than the number of currently available copies.
         """
         if total_copies is not None and total_copies.value < self.available_copies:
             raise InvalidTotalCopiesException(
-                "Total copies cannot be less than currently borrowed copies.",
+                "Total copies cannot be less than currently available copies.",
                 total_copies.value,
             )
 
@@ -107,12 +119,12 @@ class BookEntity(BaseEntity):
             title=title if title is not None else self.title,
             isbn=self.isbn,
             author=author if author is not None else self.author,
-            published_year=published_year
-            if published_year is not None
-            else self.published_year,
-            total_copies=total_copies
-            if total_copies is not None
-            else self.total_copies,
+            published_year=(
+                published_year if published_year is not None else self.published_year
+            ),
+            total_copies=(
+                total_copies if total_copies is not None else self.total_copies
+            ),
             available_copies=self.available_copies,
             created_at=self.created_at,
             updated_at=now,

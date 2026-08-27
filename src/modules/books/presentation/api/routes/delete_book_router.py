@@ -31,10 +31,6 @@ router = APIRouter()
         status.HTTP_204_NO_CONTENT: {
             "description": "Book successfully deleted.",
         },
-        status.HTTP_400_BAD_REQUEST: {
-            "model": ErrorsResponseSchema,
-            "description": "Book update failed.",
-        },
         status.HTTP_401_UNAUTHORIZED: {
             "model": ErrorsResponseSchema,
             "description": "Authentication is required.",
@@ -45,11 +41,15 @@ router = APIRouter()
         },
         status.HTTP_404_NOT_FOUND: {
             "model": ErrorsResponseSchema,
-            "description": "The book to be updated was not found.",
+            "description": "The book to be deleted was not found.",
+        },
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorsResponseSchema,
+            "description": "Book delete failed.",
         },
         status.HTTP_422_UNPROCESSABLE_CONTENT: {
             "model": ErrorsResponseSchema,
-            "description": "Invalid book update data.",
+            "description": "Invalid book delete data.",
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": ErrorsResponseSchema,

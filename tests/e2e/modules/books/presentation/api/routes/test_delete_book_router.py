@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Callable
 from typing import Any
 from uuid import uuid4
@@ -5,6 +6,11 @@ from uuid import uuid4
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
+from sqlalchemy import update
+from sqlalchemy.ext.asyncio import create_async_engine
+
+from src.config import settings
+from src.modules.books.infrastructure.persistence.models.book_model import BookModel
 
 pytestmark = [pytest.mark.e2e, pytest.mark.db]
 
@@ -27,6 +33,24 @@ def _register_book(
     response = client.post(url=REGISTER_BOOK_URL, json=payload, headers=auth_headers)
     assert response.status_code == status.HTTP_201_CREATED
     return dict(response.json()["data"])
+
+
+async def _mark_book_with_active_loan(book_id: str) -> None:
+    """Directly decrements a book's available copies, straight in the database.
+
+    Simulates an active loan since there is no loans API yet to exercise
+    this state through the public HTTP surface.
+    """
+    engine = create_async_engine(settings.DATABASE_URL)
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(
+                update(BookModel)
+                .where(BookModel.id == book_id)
+                .values(available_copies=BookModel.available_copies - 1)
+            )
+    finally:
+        await engine.dispose()
 
 
 class TestDeleteBook:
@@ -101,6 +125,45 @@ class TestDeleteBook:
 
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert response.json()["status"] == "error"
+
+    class TestConflict:
+        def test_should_return_conflict_when_book_has_active_loans(
+            self,
+            client: TestClient,
+            librarian_auth_headers: dict[str, str],
+            register_book_payload: RegisterBookPayloadFactory,
+        ) -> None:
+            book = _register_book(client, librarian_auth_headers, register_book_payload)
+            asyncio.run(_mark_book_with_active_loan(book["id"]))
+
+            response = client.delete(
+                url=_delete_book_url(book["id"]),
+                headers=librarian_auth_headers,
+            )
+
+            assert response.status_code == status.HTTP_409_CONFLICT
+            assert response.json()["status"] == "error"
+
+        def test_should_not_remove_book_when_it_has_active_loans(
+            self,
+            client: TestClient,
+            librarian_auth_headers: dict[str, str],
+            register_book_payload: RegisterBookPayloadFactory,
+        ) -> None:
+            book = _register_book(client, librarian_auth_headers, register_book_payload)
+            asyncio.run(_mark_book_with_active_loan(book["id"]))
+
+            client.delete(
+                url=_delete_book_url(book["id"]),
+                headers=librarian_auth_headers,
+            )
+
+            response = client.delete(
+                url=_delete_book_url(book["id"]),
+                headers=librarian_auth_headers,
+            )
+
+            assert response.status_code == status.HTTP_409_CONFLICT
 
     class TestNotFound:
         def test_should_return_not_found_when_book_does_not_exist(

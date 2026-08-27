@@ -240,3 +240,46 @@ class TestBookEntity:
         )
 
         assert updated_book.total_copies.value == book.available_copies + 5
+
+    def test_should_return_false_when_available_copies_equal_total_copies(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+
+        assert book.has_active_loans() is False
+
+    def test_should_return_true_when_available_copies_are_less_than_total_copies(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+        book_with_loan = BookEntity(
+            id=book.id,
+            title=book.title,
+            isbn=book.isbn,
+            author=book.author,
+            published_year=book.published_year,
+            total_copies=book.total_copies,
+            available_copies=book.available_copies - 1,
+            created_at=book.created_at,
+            updated_at=book.updated_at,
+        )
+
+        assert book_with_loan.has_active_loans() is True
+
+    def test_should_return_true_when_all_copies_are_currently_on_loan(
+        self, faker: Faker
+    ) -> None:
+        book = _build_book_entity(faker, total_copies=TotalCopiesVO(5))
+        book_with_no_available_copies = BookEntity(
+            id=book.id,
+            title=book.title,
+            isbn=book.isbn,
+            author=book.author,
+            published_year=book.published_year,
+            total_copies=book.total_copies,
+            available_copies=0,
+            created_at=book.created_at,
+            updated_at=book.updated_at,
+        )
+
+        assert book_with_no_available_copies.has_active_loans() is True

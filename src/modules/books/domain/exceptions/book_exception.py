@@ -120,3 +120,11 @@ class BookNotFoundException(BaseDomainException):
     def __init__(self) -> None:
         """Initialize the BookNotFoundException."""
         super().__init__("Book not found.")
+
+
+class BookHasActiveLoansException(BaseDomainException):
+    """Exception raised when the book has active loans."""
+
+    def __init__(self) -> None:
+        """Initialize the BookHasActiveLoansException."""
+        super().__init__("Book has active loans.")

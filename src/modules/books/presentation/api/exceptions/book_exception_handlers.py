@@ -5,6 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from src.modules.books.domain.exceptions.book_exception import (
+    BookHasActiveLoansException,
     BookNotFoundException,
     BookRepositoryException,
     ISBNAlreadyRegisteredException,
@@ -309,5 +310,35 @@ def book_exception_handlers(app: FastAPI) -> None:
                     details=exc.error,
                     context={"filter": exc.filter},
                 )
+            ),
+        )
+
+    @app.exception_handler(BookHasActiveLoansException)
+    async def book_has_active_loan_exception_handler(
+        request: Request, exc: BookHasActiveLoansException
+    ) -> JSONResponse:
+        """Book has active loan exception handler.
+
+        Args:
+            request (Request): The request object.
+            exc (BookHasActiveLoansException): The BookHasActiveLoansException exception.
+
+        Returns:
+            JSONResponse: The JSON response with the appropriate status code and message.
+        """
+        _logger.error(
+            "Book has active loan exception occurred while processing request.",
+            request_method=request.method,
+            request_path=request.url.path,
+            exception_message=exc,
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content=jsonable_encoder(
+                ErrorsResponseSchema(
+                    message=str(exc),
+                ),
+                exclude_none=True,
             ),
         )
