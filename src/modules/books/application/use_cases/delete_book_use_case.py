@@ -1,7 +1,10 @@
 """This module contains the delete book use case."""
 
 from src.modules.books.application.dtos.delete_book_dto import DeleteBookCommandDto
-from src.modules.books.domain.exceptions.book_exception import BookNotFoundException
+from src.modules.books.domain.exceptions.book_exception import (
+    BookHasActiveLoansException,
+    BookNotFoundException,
+)
 from src.modules.books.domain.ports.unit_of_work.book_unit_of_work_port import (
     BookUnitOfWorkPort,
 )
@@ -72,7 +75,12 @@ class DeleteBookUseCase:
                     )
                     raise BookNotFoundException()
 
-                # TODO: Do not allow deleting a book while it has active loans.
+                if exists_book.has_active_loans():
+                    self._logger.warning(
+                        "Book has active loans.",
+                        book_id=command.book_id,
+                    )
+                    raise BookHasActiveLoansException()
 
                 await uow.books.delete(command.book_id)
                 await uow.commit()
