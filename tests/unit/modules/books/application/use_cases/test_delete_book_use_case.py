@@ -9,7 +9,10 @@ from src.modules.books.application.use_cases.delete_book_use_case import (
     DeleteBookUseCase,
 )
 from src.modules.books.domain.entities.book_entity import BookEntity
-from src.modules.books.domain.exceptions.book_exception import BookNotFoundException
+from src.modules.books.domain.exceptions.book_exception import (
+    BookHasActiveLoansException,
+    BookNotFoundException,
+)
 from src.modules.books.domain.value_objects.author_vo import AuthorVO
 from src.modules.books.domain.value_objects.book_catalog_cache_key_vo import (
     BookCatalogCacheKeyVO,
@@ -36,6 +39,21 @@ def _build_existing_book(faker: Faker) -> BookEntity:
         author=AuthorVO(faker.name()),
         published_year=PublishedYearVO(2020),
         total_copies=TotalCopiesVO(5),
+    )
+
+
+def _build_existing_book_with_active_loans(faker: Faker) -> BookEntity:
+    book = _build_existing_book(faker)
+    return BookEntity(
+        id=book.id,
+        title=book.title,
+        isbn=book.isbn,
+        author=book.author,
+        published_year=book.published_year,
+        total_copies=book.total_copies,
+        available_copies=book.available_copies - 1,
+        created_at=book.created_at,
+        updated_at=book.updated_at,
     )
 
 
@@ -129,6 +147,36 @@ class TestDeleteBookUseCase:
             await use_case.execute(command, authenticated_user)
 
         book_unit_of_work_mock.books.find_by_id.assert_awaited_once()
+        book_unit_of_work_mock.books.delete.assert_not_awaited()
+        book_unit_of_work_mock.commit.assert_not_awaited()
+        cache_outbound_mock.delete.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_should_raise_book_has_active_loans_exception_when_book_has_active_loans(
+        self,
+        faker: Faker,
+        logger_factory_outbound_mock: Mock,
+        book_unit_of_work_mock: AsyncMock,
+        cache_outbound_mock: AsyncMock,
+    ) -> None:
+        existing_book = _build_existing_book_with_active_loans(faker)
+        book_unit_of_work_mock.books.find_by_id.return_value = existing_book
+
+        use_case = DeleteBookUseCase(
+            logger_factory_outbound=logger_factory_outbound_mock,
+            book_unit_of_work=book_unit_of_work_mock,
+            cache_outbound=cache_outbound_mock,
+        )
+
+        command = _build_command(book_id=existing_book.id)
+        authenticated_user = _build_authenticated_user(faker)
+
+        with pytest.raises(BookHasActiveLoansException):
+            await use_case.execute(command, authenticated_user)
+
+        book_unit_of_work_mock.books.find_by_id.assert_awaited_once_with(
+            existing_book.id
+        )
         book_unit_of_work_mock.books.delete.assert_not_awaited()
         book_unit_of_work_mock.commit.assert_not_awaited()
         cache_outbound_mock.delete.assert_not_awaited()
