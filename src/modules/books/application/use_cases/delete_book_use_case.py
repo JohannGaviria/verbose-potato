@@ -8,6 +8,9 @@ from src.modules.books.domain.ports.unit_of_work.book_unit_of_work_port import (
 from src.modules.books.domain.value_objects.book_catalog_cache_key_vo import (
     BookCatalogCacheKeyVO,
 )
+from src.modules.books.domain.value_objects.book_catalog_cache_value_vo import (
+    BookCatalogCacheValueVO,
+)
 from src.shared.application.dtos.authenticated_user_dto import (
     AuthenticatedUserCommandDto,
 )
@@ -27,14 +30,15 @@ class DeleteBookUseCase:
         self,
         logger_factory_outbound: LoggerFactoryOutboundPort,
         book_unit_of_work: BookUnitOfWorkPort,
-        cache_outbound: CacheOutboundPort,
+        cache_outbound: CacheOutboundPort[BookCatalogCacheValueVO],
     ) -> None:
         """Initializes the DeleteBookUseCase.
 
         Args:
             logger_factory_outbound (LoggerFactoryOutboundPort): Factory used to create the logger instance.
             book_unit_of_work (BookUnitOfWorkPort): Unit of work used to persist book entities.
-            cache_outbound (CacheOutboundPort): Outbound used to create the cache instance.
+            cache_outbound (CacheOutboundPort[BookCatalogCacheValueVO]): Outbound used to create
+                the cache instance.
         """
         self._logger = logger_factory_outbound.get_logger(__name__)
         self._book_unit_of_work = book_unit_of_work

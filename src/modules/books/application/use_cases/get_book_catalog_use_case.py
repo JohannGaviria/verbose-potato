@@ -47,7 +47,8 @@ class GetBookCatalogUseCase:
 
         Args:
             logger_factory_outbound (LoggerFactoryOutboundPort): Factory used to create the logger instance.
-            cache_outbound (CacheOutboundPort): Outbound used to create the cache instance.
+            cache_outbound (CacheOutboundPort[BookCatalogCacheValueVO]): Outbound used to create
+                the cache instance.
             book_unit_of_work (BookUnitOfWorkPort): Unit of work used to persist book entities.
         """
         self._logger = logger_factory_outbound.get_logger(__name__)
