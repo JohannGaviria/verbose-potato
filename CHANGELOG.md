@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.8.1...v1.9.0) (2026-08-27)
+
+
+### Features
+
+* **books:** implement books module ([ad6e968](https://github.com/JohannGaviria/verbose-potato/commit/ad6e968ea735c8ab5a68d9adc6cee4061234cb83)), closes [#4](https://github.com/JohannGaviria/verbose-potato/issues/4) [#5](https://github.com/JohannGaviria/verbose-potato/issues/5) [#6](https://github.com/JohannGaviria/verbose-potato/issues/6) [#7](https://github.com/JohannGaviria/verbose-potato/issues/7)
+
 ## [1.8.1](https://github.com/JohannGaviria/verbose-potato/compare/v1.8.0...v1.8.1) (2026-08-05)
 
 
