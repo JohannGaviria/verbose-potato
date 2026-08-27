@@ -3,6 +3,9 @@
 from src.modules.books.application.use_cases.delete_book_use_case import (
     DeleteBookUseCase,
 )
+from src.modules.books.application.use_cases.get_book_catalog_use_case import (
+    GetBookCatalogUseCase,
+)
 from src.modules.books.application.use_cases.registration_new_book_use_case import (
     RegistrationNewBookUseCase,
 )
@@ -51,6 +54,19 @@ def get_delete_book_use_case() -> DeleteBookUseCase:
         DeleteBookUseCase: The DeleteBookUseCase instance.
     """
     return DeleteBookUseCase(
+        logger_factory_outbound=get_logger_factory_outbound(),
+        book_unit_of_work=get_book_unit_of_work(),
+        cache_outbound=get_book_cache_outbound(),
+    )
+
+
+def get_get_book_catalog_use_case() -> GetBookCatalogUseCase:
+    """Get the GetBookCatalogUseCase instance.
+
+    Returns:
+        GetBookCatalogUseCase: The GetBookCatalogUseCase instance.
+    """
+    return GetBookCatalogUseCase(
         logger_factory_outbound=get_logger_factory_outbound(),
         book_unit_of_work=get_book_unit_of_work(),
         cache_outbound=get_book_cache_outbound(),

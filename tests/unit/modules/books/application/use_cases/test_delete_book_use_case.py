@@ -11,7 +11,7 @@ from src.modules.books.application.use_cases.delete_book_use_case import (
 from src.modules.books.domain.entities.book_entity import BookEntity
 from src.modules.books.domain.exceptions.book_exception import BookNotFoundException
 from src.modules.books.domain.value_objects.author_vo import AuthorVO
-from src.modules.books.domain.value_objects.book_catalog_cache_key import (
+from src.modules.books.domain.value_objects.book_catalog_cache_key_vo import (
     BookCatalogCacheKeyVO,
 )
 from src.modules.books.domain.value_objects.isbn_vo import IsbnVO

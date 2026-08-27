@@ -299,7 +299,7 @@ def book_exception_handlers(app: FastAPI) -> None:
             request_path=request.url.path,
             exception_message=exc,
             error=exc.error,
-            query=exc.query,
+            filter=exc.filter,
         )
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -307,7 +307,7 @@ def book_exception_handlers(app: FastAPI) -> None:
                 ErrorsResponseSchema(
                     message=str(exc),
                     details=exc.error,
-                    context={"query": exc.query},
+                    context={"filter": exc.filter},
                 )
             ),
         )

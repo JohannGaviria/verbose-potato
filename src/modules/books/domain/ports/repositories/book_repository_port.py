@@ -4,6 +4,9 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from src.modules.books.domain.entities.book_entity import BookEntity
+from src.modules.books.domain.value_objects.book_catalog_query_vo import (
+    BookCatalogQueryVO,
+)
 from src.modules.books.domain.value_objects.isbn_vo import IsbnVO
 
 
@@ -19,6 +22,22 @@ class BookRepositoryPort(ABC):
 
         Returns:
             BookEntity: The book entity found or None if not found.
+        """
+        pass
+
+    @abstractmethod
+    async def find_catalog(
+        self, query: BookCatalogQueryVO
+    ) -> tuple[list[BookEntity], int]:
+        """Find books matching the specified catalog query.
+
+        Args:
+            query: Query parameters containing filters, sorting, and pagination
+                criteria.
+
+        Returns:
+            tuple[list[BookEntity], int]: A tuple containing the books for the requested page and
+            the total number of books matching the query filters.
         """
         pass
 
