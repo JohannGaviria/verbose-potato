@@ -31,6 +31,6 @@ class LoanModel(BaseModel):
     loaned_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True, index=True
     )
-    returned_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, index=True
+    returned_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
     )

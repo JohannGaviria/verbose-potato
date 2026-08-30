@@ -28,7 +28,7 @@ def upgrade() -> None:
     sa.Column('book_id', sa.Uuid(), nullable=True),
     sa.Column('status', sa.String(), nullable=True),
     sa.Column('loaned_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('returned_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('returned_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),

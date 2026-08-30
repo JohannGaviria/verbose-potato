@@ -13,6 +13,9 @@ from src.modules.auth.infrastructure.persistence.models.user_model import (
 from src.modules.books.infrastructure.persistence.models.book_model import (
     BookModel,  # noqa: F401
 )
+from src.modules.loans.infrastructure.persistence.models.loan_model import (
+    LoanModel,  # noqa: F401
+)
 from src.shared.infrastructure.persistence.models.base_model import Base
 
 

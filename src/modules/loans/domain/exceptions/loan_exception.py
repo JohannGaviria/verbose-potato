@@ -26,3 +26,16 @@ class MaximumActiveLoansExceededException(BaseDomainException):
     def __init__(self) -> None:
         """Initialize the MaximumActiveLoansExceededException."""
         super().__init__("Maximum active loans exceeded.")
+
+
+class LoanRepositoryException(BaseDomainException):
+    """Exception raised when the loan repository fails."""
+
+    def __init__(self, error: str) -> None:
+        """Initialize the LoanRepositoryException.
+
+        Args:
+            error (str): The error message.
+        """
+        self.error = error
+        super().__init__("Error while interacting with the loan repository.")
