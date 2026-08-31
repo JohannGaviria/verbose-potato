@@ -15,6 +15,7 @@ from src.modules.loans.infrastructure.outbound.redis_loan_cache_invalidation_out
 from src.modules.loans.infrastructure.persistence.unit_of_work.sqlalchemy_loan_unit_of_work_adapter import (
     SQLAlchemyLoanUnitOfWorkAdapter,
 )
+from src.shared.domain.ports.outbound.cache_outbound_port import CacheOutboundPort
 from src.shared.infrastructure.cache.redis_client import redis_client
 from src.shared.infrastructure.database.database import db
 from src.shared.infrastructure.outbound.redis_cache_outbound_adapter import (
@@ -23,6 +24,19 @@ from src.shared.infrastructure.outbound.redis_cache_outbound_adapter import (
 from src.shared.presentation.compositions.infrastructure_composition import (
     get_logger_factory_outbound,
 )
+
+
+def get_member_loan_cache_outbound() -> CacheOutboundPort[MemberLoanCacheValueVO]:
+    """Get the member loan cache outbound adapter instance.
+
+    Returns:
+        CacheOutboundPort[MemberLoanCacheValueVO]: The member loan cache outbound adapter.
+    """
+    return RedisCacheOutboundAdapter[MemberLoanCacheValueVO](
+        redis_client=redis_client.client,
+        factory=MemberLoanCacheValueVO.from_dict,
+        logger_factory_outbound=get_logger_factory_outbound(),
+    )
 
 
 def get_loan_unit_of_work() -> SQLAlchemyLoanUnitOfWorkAdapter:
@@ -49,11 +63,7 @@ def get_loan_cache_invalidation_outbound() -> RedisLoanCacheInvalidationOutbound
             factory=LoanCatalogCacheValueVO.from_dict,
             logger_factory_outbound=get_logger_factory_outbound(),
         ),
-        member_loan_cache_outbound=RedisCacheOutboundAdapter[MemberLoanCacheValueVO](
-            redis_client=redis_client.client,
-            factory=MemberLoanCacheValueVO.from_dict,
-            logger_factory_outbound=get_logger_factory_outbound(),
-        ),
+        member_loan_cache_outbound=get_member_loan_cache_outbound(),
         book_catalog_cache_outbound=RedisCacheOutboundAdapter[BookCatalogCacheValueVO](
             redis_client=redis_client.client,
             factory=BookCatalogCacheValueVO.from_dict,
