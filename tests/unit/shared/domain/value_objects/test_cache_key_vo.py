@@ -14,6 +14,8 @@ class TestCacheKeyVO:
             "cache:session:abc:def",
             "cache:book_catalog:42",
             "cache:a:b",
+            "cache:member:42:abc123",
+            "cache:member:42:abc123:def456",
         ],
     )
     def test_should_create_cache_key_when_key_matches_pattern(self, key: str) -> None:

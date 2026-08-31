@@ -4,6 +4,9 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from src.modules.loans.domain.entities.loan_entity import LoanEntity
+from src.modules.loans.domain.value_objects.member_loan_query_vo import (
+    MemberLoanQueryVO,
+)
 
 
 class LoanRepositoryPort(ABC):
@@ -18,6 +21,23 @@ class LoanRepositoryPort(ABC):
 
         Returns:
             LoanEntity | None: The loan entity if found, otherwise None.
+        """
+        pass
+
+    @abstractmethod
+    async def find_by_member(
+        self, member_id: UUID, query: MemberLoanQueryVO
+    ) -> tuple[list[LoanEntity], int]:
+        """Find the loans of the given member according to the query.
+
+        Args:
+            member_id (UUID): Member ID for the loans.
+            query (MemberLoanQueryVO): The query with filters, sorting and
+                pagination.
+
+        Returns:
+            tuple[list[LoanEntity], int]: The matching loan entities and the
+                total number of matching loans.
         """
         pass
 

@@ -49,6 +49,21 @@ class LoanAlreadyReturnedException(BaseDomainException):
         super().__init__("Loan has already been returned.")
 
 
+class InvalidMemberLoanQueryException(BaseDomainException):
+    """Exception raised when the member loan query is invalid."""
+
+    def __init__(self, error: str, filter: str | int | bool) -> None:
+        """Initialize the InvalidMemberLoanQueryException.
+
+        Args:
+            error (str): The error message.
+            filter (str | int | bool): The invalid filter for the member loans.
+        """
+        self.error = error
+        self.filter = filter
+        super().__init__("Invalid member loan query provided.")
+
+
 class LoanRepositoryException(BaseDomainException):
     """Exception raised when the loan repository fails."""
 

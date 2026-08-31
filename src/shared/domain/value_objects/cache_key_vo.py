@@ -37,8 +37,8 @@ class CacheKeyVO(BaseValueObject):
             InvalidCacheKeyException: If the cache key does not meet the validation criteria.
         """
         # Regex pattern:
-        # Example valid keys: cache:user:123, cache:session:abc:def
-        CACHE_PATTERN = r"^cache:[^:\s]+:[^:\s]+(:[^:\s]+)?$"
+        # Example valid keys: cache:user:123, cache:session:abc:def, cache:member:42:hash
+        CACHE_PATTERN = r"^cache:[^:\s]+:[^:\s]+(:[^:\s]+)*$"
 
         if self.key is None:
             raise InvalidCacheKeyException("Cache key cannot be None.")
