@@ -13,6 +13,9 @@ from src.modules.loans.domain.entities.loan_entity import LoanEntity
 from src.modules.loans.domain.enums.loan_sort_by_enum import LoanSortByEnum
 from src.modules.loans.domain.enums.loan_status_enum import LoanStatusEnum
 from src.modules.loans.domain.exceptions.loan_exception import LoanRepositoryException
+from src.modules.loans.domain.value_objects.loan_catalog_query_vo import (
+    LoanCatalogQueryVO,
+)
 from src.modules.loans.domain.value_objects.member_loan_query_vo import (
     MemberLoanQueryVO,
 )
@@ -37,6 +40,20 @@ def _build_member_query(**overrides: Any) -> MemberLoanQueryVO:
     }
     defaults.update(overrides)
     return MemberLoanQueryVO(**defaults)
+
+
+def _build_catalog_query(**overrides: Any) -> LoanCatalogQueryVO:
+    defaults: dict[str, Any] = {
+        "member_id": None,
+        "book_id": None,
+        "status": None,
+        "sort_by": None,
+        "sort_order": None,
+        "page": 1,
+        "page_size": 20,
+    }
+    defaults.update(overrides)
+    return LoanCatalogQueryVO(**defaults)
 
 
 class TestSQLAlchemyLoanRepositoryAdapter:
@@ -710,3 +727,328 @@ class TestSQLAlchemyLoanRepositoryAdapter:
             ):
                 with pytest.raises(LoanRepositoryException):
                     await loan_repository.find_by_member(uuid4(), _build_member_query())
+
+    class TestFindCatalog:
+        async def test_should_return_empty_list_and_zero_total_when_no_loans_exist(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+        ) -> None:
+            loans, total = await loan_repository.find_catalog(_build_catalog_query())
+
+            assert loans == []
+            assert total == 0
+
+        async def test_should_return_all_loans_and_total_when_no_filters_are_provided(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            first = make_loan_entity()
+            second = make_loan_entity()
+            await loan_repository.save(first)
+            await loan_repository.save(second)
+
+            loans, total = await loan_repository.find_catalog(_build_catalog_query())
+
+            assert total == 2
+            assert {loan.id for loan in loans} == {first.id, second.id}
+
+        async def test_should_return_loans_from_all_members(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            first = make_loan_entity()
+            second = make_loan_entity()
+            await loan_repository.save(first)
+            await loan_repository.save(second)
+
+            loans, total = await loan_repository.find_catalog(_build_catalog_query())
+
+            assert {loan.member_id for loan in loans} == {
+                first.member_id,
+                second.member_id,
+            }
+            assert total == 2
+
+        async def test_should_filter_by_member_id(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            member_id = entity.member_id
+            await loan_repository.save(entity)
+            await loan_repository.save(make_loan_entity())
+
+            query = _build_catalog_query(member_id=member_id)
+            loans, total = await loan_repository.find_catalog(query)
+
+            assert total == 1
+            assert [loan.id for loan in loans] == [entity.id]
+
+        async def test_should_filter_by_book_id(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            book_id = entity.book_id
+            await loan_repository.save(entity)
+            await loan_repository.save(make_loan_entity())
+
+            query = _build_catalog_query(book_id=book_id)
+            loans, total = await loan_repository.find_catalog(query)
+
+            assert total == 1
+            assert [loan.id for loan in loans] == [entity.id]
+
+        async def test_should_filter_by_active_status(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            await loan_repository.save(entity)
+            returned = make_loan_entity(status=LoanStatusEnum.RETURNED)
+            await loan_repository.save(returned)
+
+            query = _build_catalog_query(status=LoanStatusEnum.ACTIVE)
+            loans, total = await loan_repository.find_catalog(query)
+
+            assert total == 1
+            assert [loan.id for loan in loans] == [entity.id]
+
+        async def test_should_filter_by_returned_status(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            returned = make_loan_entity(status=LoanStatusEnum.RETURNED)
+            await loan_repository.save(returned)
+            active = make_loan_entity(status=LoanStatusEnum.ACTIVE)
+            await loan_repository.save(active)
+
+            query = _build_catalog_query(status=LoanStatusEnum.RETURNED)
+            loans, total = await loan_repository.find_catalog(query)
+
+            assert total == 1
+            assert [loan.id for loan in loans] == [returned.id]
+
+        async def test_should_combine_filters(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            member_id = entity.member_id
+            book_id = entity.book_id
+            await loan_repository.save(entity)
+            await loan_repository.save(make_loan_entity(member_id=member_id))
+            await loan_repository.save(make_loan_entity(book_id=book_id))
+
+            query = _build_catalog_query(member_id=member_id, book_id=book_id)
+            loans, total = await loan_repository.find_catalog(query)
+
+            assert total == 1
+            assert [loan.id for loan in loans] == [entity.id]
+
+        async def test_should_return_empty_list_when_no_loan_matches_filters(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            await loan_repository.save(entity)
+
+            query = _build_catalog_query(member_id=uuid4())
+            loans, total = await loan_repository.find_catalog(query)
+
+            assert loans == []
+            assert total == 0
+
+        async def test_should_sort_by_loaned_at_ascending(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            base = datetime.now(UTC)
+            older = replace(make_loan_entity(), loaned_at=base - timedelta(days=10))
+            newer = replace(make_loan_entity(), loaned_at=base - timedelta(days=1))
+            await loan_repository.save(older)
+            await loan_repository.save(newer)
+
+            query = _build_catalog_query(
+                sort_by=LoanSortByEnum.LOANED_AT,
+                sort_order=SortOrderEnum.ASC,
+            )
+            loans, _ = await loan_repository.find_catalog(query)
+
+            assert [loan.id for loan in loans] == [older.id, newer.id]
+
+        async def test_should_sort_by_loaned_at_descending(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            base = datetime.now(UTC)
+            older = replace(make_loan_entity(), loaned_at=base - timedelta(days=10))
+            newer = replace(make_loan_entity(), loaned_at=base - timedelta(days=1))
+            await loan_repository.save(older)
+            await loan_repository.save(newer)
+
+            query = _build_catalog_query(
+                sort_by=LoanSortByEnum.LOANED_AT,
+                sort_order=SortOrderEnum.DESC,
+            )
+            loans, _ = await loan_repository.find_catalog(query)
+
+            assert [loan.id for loan in loans] == [newer.id, older.id]
+
+        async def test_should_sort_by_returned_at_ascending(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            base = datetime.now(UTC)
+            older = make_loan_entity(
+                status=LoanStatusEnum.RETURNED,
+                returned_at=base - timedelta(days=10),
+            )
+            newer = make_loan_entity(
+                status=LoanStatusEnum.RETURNED,
+                returned_at=base - timedelta(days=1),
+            )
+            await loan_repository.save(older)
+            await loan_repository.save(newer)
+
+            query = _build_catalog_query(
+                sort_by=LoanSortByEnum.RETURNED_AT,
+                sort_order=SortOrderEnum.ASC,
+            )
+            loans, _ = await loan_repository.find_catalog(query)
+
+            assert [loan.id for loan in loans] == [older.id, newer.id]
+
+        async def test_should_sort_by_returned_at_descending(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            base = datetime.now(UTC)
+            older = make_loan_entity(
+                status=LoanStatusEnum.RETURNED,
+                returned_at=base - timedelta(days=10),
+            )
+            newer = make_loan_entity(
+                status=LoanStatusEnum.RETURNED,
+                returned_at=base - timedelta(days=1),
+            )
+            await loan_repository.save(older)
+            await loan_repository.save(newer)
+
+            query = _build_catalog_query(
+                sort_by=LoanSortByEnum.RETURNED_AT,
+                sort_order=SortOrderEnum.DESC,
+            )
+            loans, _ = await loan_repository.find_catalog(query)
+
+            assert [loan.id for loan in loans] == [newer.id, older.id]
+
+        async def test_should_paginate_results_across_multiple_pages(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            created = [
+                replace(
+                    make_loan_entity(),
+                    loaned_at=datetime.now(UTC) + timedelta(days=index),
+                )
+                for index in range(5)
+            ]
+            for entity in created:
+                await loan_repository.save(entity)
+
+            expected_order = sorted(created, key=lambda loan: loan.loaned_at)
+
+            first_page, total = await loan_repository.find_catalog(
+                _build_catalog_query(
+                    sort_by=LoanSortByEnum.LOANED_AT,
+                    sort_order=SortOrderEnum.ASC,
+                    page=1,
+                    page_size=2,
+                )
+            )
+            second_page, _ = await loan_repository.find_catalog(
+                _build_catalog_query(
+                    sort_by=LoanSortByEnum.LOANED_AT,
+                    sort_order=SortOrderEnum.ASC,
+                    page=2,
+                    page_size=2,
+                )
+            )
+            third_page, _ = await loan_repository.find_catalog(
+                _build_catalog_query(
+                    sort_by=LoanSortByEnum.LOANED_AT,
+                    sort_order=SortOrderEnum.ASC,
+                    page=3,
+                    page_size=2,
+                )
+            )
+
+            assert total == 5
+            assert len(first_page) == 2
+            assert len(second_page) == 2
+            assert len(third_page) == 1
+
+            paginated_ids = [loan.id for loan in first_page + second_page + third_page]
+            assert paginated_ids == [loan.id for loan in expected_order]
+
+        async def test_should_return_empty_list_when_page_is_beyond_available_results(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            await loan_repository.save(entity)
+
+            loans, total = await loan_repository.find_catalog(
+                _build_catalog_query(page=2, page_size=20)
+            )
+
+            assert loans == []
+            assert total == 1
+
+        async def test_should_map_persisted_loans_to_loan_entities(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity(status=LoanStatusEnum.RETURNED)
+            await loan_repository.save(entity)
+
+            loans, _ = await loan_repository.find_catalog(_build_catalog_query())
+
+            assert len(loans) == 1
+            found = loans[0]
+            assert found.id == entity.id
+            assert found.member_id == entity.member_id
+            assert found.book_id == entity.book_id
+            assert found.status == entity.status
+            assert found.loaned_at == entity.loaned_at
+            assert found.returned_at == entity.returned_at
+            assert found.created_at == entity.created_at
+            assert found.updated_at == entity.updated_at
+
+        async def test_should_raise_loan_repository_exception_when_a_database_error_occurs(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+        ) -> None:
+            with patch.object(
+                loan_repository._session,
+                "execute",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(LoanRepositoryException):
+                    await loan_repository.find_catalog(_build_catalog_query())
