@@ -21,6 +21,12 @@ from src.modules.books.presentation.api.exceptions.book_exception_handlers impor
 from src.modules.books.presentation.api.routes.books_router import (
     router as books_router,
 )
+from src.modules.loans.presentation.api.exceptions.loan_exception_handlers import (
+    loan_exception_handlers,
+)
+from src.modules.loans.presentation.api.routes.loans_router import (
+    router as loans_router,
+)
 from src.shared.infrastructure.cache.redis_client import redis_client
 from src.shared.infrastructure.database.database import db
 from src.shared.infrastructure.logging.structlog_configure_logging import (
@@ -93,11 +99,13 @@ app.add_middleware(CorrelationIdMiddleware)
 exception_handlers(app)
 auth_exception_handlers(app)
 book_exception_handlers(app)
+loan_exception_handlers(app)
 
 
 # Includes the routers for the API endpoints
 app.include_router(auth_router)
 app.include_router(books_router)
+app.include_router(loans_router)
 
 
 @app.get(
