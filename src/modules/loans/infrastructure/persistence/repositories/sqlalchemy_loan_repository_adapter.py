@@ -2,23 +2,33 @@
 
 from uuid import UUID
 
-from sqlalchemy import exists, func, select
+from sqlalchemy import ColumnElement, asc, desc, exists, func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.modules.loans.domain.entities.loan_entity import LoanEntity
+from src.modules.loans.domain.enums.loan_sort_by_enum import LoanSortByEnum
 from src.modules.loans.domain.enums.loan_status_enum import LoanStatusEnum
 from src.modules.loans.domain.exceptions.loan_exception import LoanRepositoryException
 from src.modules.loans.domain.ports.repositories.loan_repository_port import (
     LoanRepositoryPort,
 )
+from src.modules.loans.domain.value_objects.member_loan_query_vo import (
+    MemberLoanQueryVO,
+)
 from src.modules.loans.infrastructure.persistence.mappers.loan_persistence_mapper import (
     LoanPersistenceMapper,
 )
 from src.modules.loans.infrastructure.persistence.models.loan_model import LoanModel
+from src.shared.domain.enums.sort_order_enum import SortOrderEnum
 from src.shared.domain.ports.outbound.logger_factory_outbound_port import (
     LoggerFactoryOutboundPort,
 )
+
+_SORT_COLUMNS = {
+    LoanSortByEnum.LOANED_AT: LoanModel.loaned_at,
+    LoanSortByEnum.RETURNED_AT: LoanModel.returned_at,
+}
 
 
 class SQLAlchemyLoanRepositoryAdapter(LoanRepositoryPort):
@@ -60,6 +70,65 @@ class SQLAlchemyLoanRepositoryAdapter(LoanRepositoryPort):
                 error=str(exc),
             )
             raise LoanRepositoryException("Error while finding loan by id.") from exc
+
+    async def find_by_member(
+        self, member_id: UUID, query: MemberLoanQueryVO
+    ) -> tuple[list[LoanEntity], int]:
+        """Find the loans of the given member according to the query.
+
+        Args:
+            member_id (UUID): Member ID for the loans.
+            query (MemberLoanQueryVO): The query with filters, sorting and
+                pagination.
+
+        Returns:
+            tuple[list[LoanEntity], int]: The matching loan entities and the
+                total number of matching loans.
+
+        Raises:
+            LoanRepositoryException: If an error occurs while finding the loans.
+        """
+        try:
+            filters: list[ColumnElement[bool]] = [LoanModel.member_id == member_id]
+
+            if query.status is not None:
+                filters.append(LoanModel.status == query.status.value)
+
+            count_stmt = select(func.count()).select_from(LoanModel)
+            if filters:
+                count_stmt = count_stmt.where(*filters)
+            total_result = await self._session.execute(count_stmt)
+            total = total_result.scalar_one()
+
+            stmt = select(LoanModel)
+            if filters:
+                stmt = stmt.where(*filters)
+
+            if query.sort_by is not None:
+                column = _SORT_COLUMNS[query.sort_by]
+                direction = desc if query.sort_order == SortOrderEnum.DESC else asc
+                stmt = stmt.order_by(direction(column))
+            else:
+                stmt = stmt.order_by(asc(LoanModel.loaned_at))
+
+            stmt = stmt.offset((query.page - 1) * query.page_size).limit(
+                query.page_size
+            )
+
+            result = await self._session.execute(stmt)
+            models = result.scalars().all()
+            loans = [LoanPersistenceMapper.to_entity(model) for model in models]
+
+            return loans, total
+
+        except SQLAlchemyError as exc:
+            self._logger.error(
+                "Error while finding loans by member.",
+                error=str(exc),
+            )
+            raise LoanRepositoryException(
+                "Error while finding loans by member."
+            ) from exc
 
     async def exists_active_by_member_and_book(
         self, member_id: UUID, book_id: UUID
