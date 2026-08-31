@@ -10,6 +10,7 @@ from sqlalchemy import create_engine, pool
 from src.shared.infrastructure.persistence.models.base_model import Base
 from src.modules.auth.infrastructure.persistence.models.user_model import UserModel
 from src.modules.books.infrastructure.persistence.models.book_model import BookModel
+from src.modules.loans.infrastructure.persistence.models.loan_model import LoanModel
 
 load_dotenv()
 
