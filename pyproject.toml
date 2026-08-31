@@ -65,6 +65,8 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.coverage.run]
+source = ["src"]
+relative_files = true
 omit = ["*/alembic/*", "*/conftest.py"]
 parallel = true
 
