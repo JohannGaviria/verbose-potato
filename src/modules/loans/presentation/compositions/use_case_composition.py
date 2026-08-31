@@ -3,6 +3,9 @@
 from src.modules.loans.application.use_cases.recording_loan_use_case import (
     RecordingLoanUseCase,
 )
+from src.modules.loans.application.use_cases.returning_loan_use_case import (
+    ReturningLoanUseCase,
+)
 from src.modules.loans.presentation.compositions.infrastructure_composition import (
     get_loan_cache_invalidation_outbound,
     get_loan_unit_of_work,
@@ -19,6 +22,19 @@ def get_recording_loan_use_case() -> RecordingLoanUseCase:
         RecordingLoanUseCase: The RecordingLoanUseCase instance.
     """
     return RecordingLoanUseCase(
+        logger_factory_outbound=get_logger_factory_outbound(),
+        loan_unit_of_work=get_loan_unit_of_work(),
+        loan_cache_invalidation_outbound=get_loan_cache_invalidation_outbound(),
+    )
+
+
+def get_returning_loan_use_case() -> ReturningLoanUseCase:
+    """Get the ReturningLoanUseCase instance.
+
+    Returns:
+        ReturningLoanUseCase: The ReturningLoanUseCase instance.
+    """
+    return ReturningLoanUseCase(
         logger_factory_outbound=get_logger_factory_outbound(),
         loan_unit_of_work=get_loan_unit_of_work(),
         loan_cache_invalidation_outbound=get_loan_cache_invalidation_outbound(),
