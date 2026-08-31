@@ -64,6 +64,21 @@ class InvalidMemberLoanQueryException(BaseDomainException):
         super().__init__("Invalid member loan query provided.")
 
 
+class InvalidLoanCatalogQueryException(BaseDomainException):
+    """Exception raised when the loan catalog query is invalid."""
+
+    def __init__(self, error: str, filter: str | int | bool) -> None:
+        """Initialize the InvalidLoanCatalogQueryException.
+
+        Args:
+            error (str): The error message.
+            filter (str | int | bool): The invalid filter for the loan catalog.
+        """
+        self.error = error
+        self.filter = filter
+        super().__init__("Invalid loan catalog query provided.")
+
+
 class LoanRepositoryException(BaseDomainException):
     """Exception raised when the loan repository fails."""
 

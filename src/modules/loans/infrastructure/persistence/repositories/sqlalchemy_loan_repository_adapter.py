@@ -13,6 +13,9 @@ from src.modules.loans.domain.exceptions.loan_exception import LoanRepositoryExc
 from src.modules.loans.domain.ports.repositories.loan_repository_port import (
     LoanRepositoryPort,
 )
+from src.modules.loans.domain.value_objects.loan_catalog_query_vo import (
+    LoanCatalogQueryVO,
+)
 from src.modules.loans.domain.value_objects.member_loan_query_vo import (
     MemberLoanQueryVO,
 )
@@ -128,6 +131,68 @@ class SQLAlchemyLoanRepositoryAdapter(LoanRepositoryPort):
             )
             raise LoanRepositoryException(
                 "Error while finding loans by member."
+            ) from exc
+
+    async def find_catalog(
+        self, query: LoanCatalogQueryVO
+    ) -> tuple[list[LoanEntity], int]:
+        """Find loans matching the specified loan catalog query.
+
+        Args:
+            query (LoanCatalogQueryVO): Query parameters containing filters,
+                sorting, and pagination criteria.
+
+        Returns:
+            tuple[list[LoanEntity], int]: The matching loan entities for the
+                requested page and the total number of loans matching the query.
+
+        Raises:
+            LoanRepositoryException: If an error occurs while finding the loan catalog.
+        """
+        try:
+            filters: list[ColumnElement[bool]] = []
+
+            if query.member_id is not None:
+                filters.append(LoanModel.member_id == query.member_id)
+            if query.book_id is not None:
+                filters.append(LoanModel.book_id == query.book_id)
+            if query.status is not None:
+                filters.append(LoanModel.status == query.status.value)
+
+            count_stmt = select(func.count()).select_from(LoanModel)
+            if filters:
+                count_stmt = count_stmt.where(*filters)
+            total_result = await self._session.execute(count_stmt)
+            total = total_result.scalar_one()
+
+            stmt = select(LoanModel)
+            if filters:
+                stmt = stmt.where(*filters)
+
+            if query.sort_by is not None:
+                column = _SORT_COLUMNS[query.sort_by]
+                direction = desc if query.sort_order == SortOrderEnum.DESC else asc
+                stmt = stmt.order_by(direction(column))
+            else:
+                stmt = stmt.order_by(asc(LoanModel.loaned_at))
+
+            stmt = stmt.offset((query.page - 1) * query.page_size).limit(
+                query.page_size
+            )
+
+            result = await self._session.execute(stmt)
+            models = result.scalars().all()
+            loans = [LoanPersistenceMapper.to_entity(model) for model in models]
+
+            return loans, total
+
+        except SQLAlchemyError as exc:
+            self._logger.error(
+                "Error while finding the loan catalog.",
+                error=str(exc),
+            )
+            raise LoanRepositoryException(
+                "Error while finding the loan catalog."
             ) from exc
 
     async def exists_active_by_member_and_book(
