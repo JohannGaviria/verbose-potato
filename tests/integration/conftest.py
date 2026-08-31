@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 import pytest
 import pytest_asyncio
 from redis.asyncio import Redis
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncSession,
@@ -11,6 +12,15 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from src.config import settings
+from src.modules.auth.infrastructure.persistence.models.user_model import (
+    UserModel,  # noqa: F401
+)
+from src.modules.books.infrastructure.persistence.models.book_model import (
+    BookModel,  # noqa: F401
+)
+from src.modules.loans.infrastructure.persistence.models.loan_model import (
+    LoanModel,  # noqa: F401
+)
 from src.shared.domain.ports.outbound.logger_factory_outbound_port import (
     LoggerFactoryOutboundPort,
 )
@@ -22,9 +32,22 @@ from src.shared.infrastructure.outbound.pyjwt_toke_decode_outbound_adapter impor
 from src.shared.infrastructure.outbound.structlog_logger_factory_outbound_adapter import (
     StructlogLoggerFactoryOutboundAdapter,
 )
+from src.shared.infrastructure.persistence.models.base_model import Base
 from tests.fixtures.database import (
     _db_schema,  # noqa: F401
 )
+
+
+async def _truncate_all(conn: AsyncConnection) -> None:
+    """Remove every row from all registered tables.
+
+    Runs before each test's outer transaction so each integration test starts
+    from an empty, isolated database regardless of any committed data left by
+    other suites (e.g. E2E) executed earlier in the same pytest session.
+    """
+    tables = ", ".join(Base.metadata.tables.keys())
+    await conn.execute(text(f"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE"))
+    await conn.commit()
 
 
 @pytest_asyncio.fixture
@@ -52,6 +75,7 @@ async def db_connection() -> AsyncIterator[AsyncConnection]:
     """A single DB connection wrapped in an outer transaction, for one test."""
     engine = create_async_engine(settings.DATABASE_URL)
     async with engine.connect() as conn:
+        await _truncate_all(conn)
         await conn.begin()
         try:
             yield conn
