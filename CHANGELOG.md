@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/JohannGaviria/verbose-potato/compare/v1.10.0...v1.10.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* resolve test isolation and coverage reporting issues ([ecb7296](https://github.com/JohannGaviria/verbose-potato/commit/ecb7296114a73a1af875d6d0f980b2c48575ce69)), closes [#6](https://github.com/JohannGaviria/verbose-potato/issues/6) [#8](https://github.com/JohannGaviria/verbose-potato/issues/8) [#9](https://github.com/JohannGaviria/verbose-potato/issues/9) [#10](https://github.com/JohannGaviria/verbose-potato/issues/10) [#13](https://github.com/JohannGaviria/verbose-potato/issues/13)
+
 # [1.10.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.9.0...v1.10.0) (2026-08-31)
 
 
