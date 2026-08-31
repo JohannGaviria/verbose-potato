@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.9.0...v1.10.0) (2026-08-31)
+
+
+### Features
+
+* **loans:** implement the loans module ([bbb2a68](https://github.com/JohannGaviria/verbose-potato/commit/bbb2a68feab527ea7a6b14d618cae990fe870593)), closes [#6](https://github.com/JohannGaviria/verbose-potato/issues/6) [#8](https://github.com/JohannGaviria/verbose-potato/issues/8) [#9](https://github.com/JohannGaviria/verbose-potato/issues/9) [#10](https://github.com/JohannGaviria/verbose-potato/issues/10)
+
 # [1.9.0](https://github.com/JohannGaviria/verbose-potato/compare/v1.8.1...v1.9.0) (2026-08-27)
 
 
