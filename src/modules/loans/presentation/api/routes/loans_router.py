@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from src.modules.loans.presentation.api.routes import (
+    get_my_loans_router,
     recording_loan_router,
     returning_loan_router,
 )
@@ -15,3 +16,4 @@ router = APIRouter(
 
 router.include_router(recording_loan_router.router)
 router.include_router(returning_loan_router.router)
+router.include_router(get_my_loans_router.router)
