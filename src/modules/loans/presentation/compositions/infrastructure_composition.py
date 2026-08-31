@@ -26,6 +26,19 @@ from src.shared.presentation.compositions.infrastructure_composition import (
 )
 
 
+def get_loan_catalog_cache_outbound() -> CacheOutboundPort[LoanCatalogCacheValueVO]:
+    """Get the loan catalog cache outbound adapter instance.
+
+    Returns:
+        CacheOutboundPort[LoanCatalogCacheValueVO]: The loan catalog cache outbound adapter.
+    """
+    return RedisCacheOutboundAdapter[LoanCatalogCacheValueVO](
+        redis_client=redis_client.client,
+        factory=LoanCatalogCacheValueVO.from_dict,
+        logger_factory_outbound=get_logger_factory_outbound(),
+    )
+
+
 def get_member_loan_cache_outbound() -> CacheOutboundPort[MemberLoanCacheValueVO]:
     """Get the member loan cache outbound adapter instance.
 
@@ -58,11 +71,7 @@ def get_loan_cache_invalidation_outbound() -> RedisLoanCacheInvalidationOutbound
         RedisLoanCacheInvalidationOutboundAdapter: The RedisLoanCacheInvalidationOutboundAdapter instance.
     """
     return RedisLoanCacheInvalidationOutboundAdapter(
-        loan_catalog_cache_outbound=RedisCacheOutboundAdapter[LoanCatalogCacheValueVO](
-            redis_client=redis_client.client,
-            factory=LoanCatalogCacheValueVO.from_dict,
-            logger_factory_outbound=get_logger_factory_outbound(),
-        ),
+        loan_catalog_cache_outbound=get_loan_catalog_cache_outbound(),
         member_loan_cache_outbound=get_member_loan_cache_outbound(),
         book_catalog_cache_outbound=RedisCacheOutboundAdapter[BookCatalogCacheValueVO](
             redis_client=redis_client.client,
