@@ -5,6 +5,8 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from src.modules.loans.domain.exceptions.loan_exception import (
+    LoanAlreadyReturnedException,
+    LoanNotFoundException,
     LoanRepositoryException,
     MaximumActiveLoansExceededException,
     MemberAlreadyHasActiveLoanException,
@@ -73,6 +75,64 @@ def loan_exception_handlers(app: FastAPI) -> None:
         """
         _logger.error(
             "Maximum active loans exceeded exception occurred while processing request.",
+            request_method=request.method,
+            request_path=request.url.path,
+            exception_message=exc,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content=jsonable_encoder(
+                ErrorsResponseSchema(
+                    message=str(exc),
+                ),
+                exclude_none=True,
+            ),
+        )
+
+    @app.exception_handler(LoanNotFoundException)
+    async def loan_not_found_exception_handler(
+        request: Request, exc: LoanNotFoundException
+    ) -> JSONResponse:
+        """Loan not found exception handler.
+
+        Args:
+            request (Request): The request object.
+            exc (LoanNotFoundException): The LoanNotFoundException exception.
+
+        Returns:
+            JSONResponse: The JSON response with the appropriate status code and message.
+        """
+        _logger.error(
+            "Loan not found exception occurred while processing request.",
+            request_method=request.method,
+            request_path=request.url.path,
+            exception_message=exc,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=jsonable_encoder(
+                ErrorsResponseSchema(
+                    message=str(exc),
+                ),
+                exclude_none=True,
+            ),
+        )
+
+    @app.exception_handler(LoanAlreadyReturnedException)
+    async def loan_already_returned_exception_handler(
+        request: Request, exc: LoanAlreadyReturnedException
+    ) -> JSONResponse:
+        """Loan already returned exception handler.
+
+        Args:
+            request (Request): The request object.
+            exc (LoanAlreadyReturnedException): The LoanAlreadyReturnedException exception.
+
+        Returns:
+            JSONResponse: The JSON response with the appropriate status code and message.
+        """
+        _logger.error(
+            "Loan already returned exception occurred while processing request.",
             request_method=request.method,
             request_path=request.url.path,
             exception_message=exc,

@@ -21,6 +21,135 @@ pytestmark = pytest.mark.db
 
 
 class TestSQLAlchemyLoanRepositoryAdapter:
+    class TestFindById:
+        async def test_should_return_none_when_loan_does_not_exist(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+        ) -> None:
+            assert await loan_repository.find_by_id(uuid4()) is None
+
+        async def test_should_return_loan_when_loan_exists(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            await loan_repository.save(entity)
+
+            found = await loan_repository.find_by_id(entity.id)
+
+            assert found == entity
+            assert found.id == entity.id
+            assert found.member_id == entity.member_id
+            assert found.book_id == entity.book_id
+            assert found.status == entity.status
+            assert found.loaned_at == entity.loaned_at
+            assert found.returned_at == entity.returned_at
+
+        async def test_should_return_returned_loan_when_loan_was_returned(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity(status=LoanStatusEnum.RETURNED)
+            await loan_repository.save(entity)
+
+            found = await loan_repository.find_by_id(entity.id)
+
+            assert found is not None
+            assert found.status == LoanStatusEnum.RETURNED
+            assert found.returned_at == entity.returned_at
+
+        async def test_should_raise_loan_repository_exception_when_a_database_error_occurs(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+        ) -> None:
+            with patch.object(
+                loan_repository._session,
+                "execute",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(LoanRepositoryException):
+                    await loan_repository.find_by_id(uuid4())
+
+    class TestUpdate:
+        async def test_should_persist_updates_when_loan_entity_is_updated(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            db_session: AsyncSession,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            await loan_repository.save(entity)
+
+            updated_entity = make_loan_entity(status=LoanStatusEnum.RETURNED)
+            updated_entity = replace(
+                updated_entity,
+                id=entity.id,
+                member_id=entity.member_id,
+                book_id=entity.book_id,
+            )
+
+            await loan_repository.update(updated_entity)
+
+            persisted = await db_session.get(LoanModel, entity.id)
+            assert persisted is not None
+            assert persisted.status == LoanStatusEnum.RETURNED.value
+            assert persisted.returned_at is not None
+
+        async def test_should_return_updated_entity_with_matching_attributes(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            await loan_repository.save(entity)
+
+            updated_entity = make_loan_entity(status=LoanStatusEnum.RETURNED)
+            updated_entity = replace(
+                updated_entity,
+                id=entity.id,
+                member_id=entity.member_id,
+                book_id=entity.book_id,
+            )
+
+            result = await loan_repository.update(updated_entity)
+
+            assert result.id == entity.id
+            assert result.status == LoanStatusEnum.RETURNED
+            assert result.returned_at == updated_entity.returned_at
+
+        async def test_should_insert_loan_when_loan_does_not_exist(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            db_session: AsyncSession,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity(status=LoanStatusEnum.RETURNED)
+
+            result = await loan_repository.update(entity)
+
+            persisted = await db_session.get(LoanModel, entity.id)
+            assert persisted is not None
+            assert result.id == entity.id
+            assert result.status == LoanStatusEnum.RETURNED
+
+        async def test_should_raise_loan_repository_exception_when_a_database_error_occurs(
+            self,
+            loan_repository: SQLAlchemyLoanRepositoryAdapter,
+            make_loan_entity: LoanEntityFactory,
+        ) -> None:
+            entity = make_loan_entity()
+            await loan_repository.save(entity)
+
+            with patch.object(
+                loan_repository._session,
+                "flush",
+                side_effect=SQLAlchemyError("boom"),
+            ):
+                with pytest.raises(LoanRepositoryException):
+                    await loan_repository.update(entity)
+
     class TestExistsActiveByMemberAndBook:
         async def test_should_return_false_when_no_loan_exists(
             self,

@@ -1,6 +1,6 @@
 """This module contains the loan entity."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -49,5 +49,19 @@ class LoanEntity(BaseEntity):
             loaned_at=now,
             returned_at=None,
             created_at=now,
+            updated_at=now,
+        )
+
+    def mark_returned(self) -> "LoanEntity":
+        """Mark the loan as returned.
+
+        Returns:
+            LoanEntity: A new loan entity with status RETURNED and returned_at set.
+        """
+        now = datetime.now(UTC)
+        return replace(
+            self,
+            status=LoanStatusEnum.RETURNED,
+            returned_at=now,
             updated_at=now,
         )
