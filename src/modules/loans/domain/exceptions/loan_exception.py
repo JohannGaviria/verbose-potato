@@ -28,6 +28,27 @@ class MaximumActiveLoansExceededException(BaseDomainException):
         super().__init__("Maximum active loans exceeded.")
 
 
+class LoanNotFoundException(BaseDomainException):
+    """Exception raised when a loan cannot be found."""
+
+    def __init__(self) -> None:
+        """Initialize the LoanNotFoundException."""
+        super().__init__("Loan cannot be found.")
+
+
+class LoanAlreadyReturnedException(BaseDomainException):
+    """Exception raised when a loan has already been returned."""
+
+    def __init__(self, loan_id: UUID) -> None:
+        """Initialize the LoanAlreadyReturnedException.
+
+        Args:
+            loan_id (UUID): The id of the loan that was already returned.
+        """
+        self.loan_id = loan_id
+        super().__init__("Loan has already been returned.")
+
+
 class LoanRepositoryException(BaseDomainException):
     """Exception raised when the loan repository fails."""
 

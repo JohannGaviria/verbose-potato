@@ -1,4 +1,5 @@
 from dataclasses import FrozenInstanceError
+from datetime import datetime
 
 import pytest
 from faker import Faker
@@ -95,3 +96,56 @@ class TestLoanEntity:
         loan2 = _build_loan_entity(faker)
 
         assert loan1 != loan2
+
+
+class TestLoanEntityMarkReturned:
+    def test_should_set_status_to_returned_when_mark_returned_is_called(
+        self, faker: Faker
+    ) -> None:
+        loan = _build_loan_entity(faker)
+
+        returned_loan = loan.mark_returned()
+
+        assert returned_loan.status == LoanStatusEnum.RETURNED
+
+    def test_should_set_returned_at_when_mark_returned_is_called(
+        self, faker: Faker
+    ) -> None:
+        loan = _build_loan_entity(faker)
+
+        returned_loan = loan.mark_returned()
+
+        assert returned_loan.returned_at is not None
+        assert isinstance(returned_loan.returned_at, datetime)
+
+    def test_should_update_updated_at_when_mark_returned_is_called(
+        self, faker: Faker
+    ) -> None:
+        loan = _build_loan_entity(faker)
+
+        returned_loan = loan.mark_returned()
+
+        assert returned_loan.updated_at >= loan.updated_at
+
+    def test_should_return_new_instance_when_mark_returned_is_called(
+        self, faker: Faker
+    ) -> None:
+        loan = _build_loan_entity(faker)
+
+        returned_loan = loan.mark_returned()
+
+        assert loan is not returned_loan
+        assert loan.id == returned_loan.id
+        assert loan.member_id == returned_loan.member_id
+        assert loan.book_id == returned_loan.book_id
+        assert loan.loaned_at == returned_loan.loaned_at
+
+    def test_should_not_modify_original_entity_when_mark_returned_is_called(
+        self, faker: Faker
+    ) -> None:
+        loan = _build_loan_entity(faker)
+
+        _ = loan.mark_returned()
+
+        assert loan.status == LoanStatusEnum.ACTIVE
+        assert loan.returned_at is None

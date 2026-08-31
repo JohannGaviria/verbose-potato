@@ -10,6 +10,18 @@ class LoanRepositoryPort(ABC):
     """Interface for loan repository port."""
 
     @abstractmethod
+    async def find_by_id(self, loan_id: UUID) -> LoanEntity | None:
+        """Find a loan by its identifier.
+
+        Args:
+            loan_id (UUID): Unique identifier of the loan.
+
+        Returns:
+            LoanEntity | None: The loan entity if found, otherwise None.
+        """
+        pass
+
+    @abstractmethod
     async def exists_active_by_member_and_book(
         self, member_id: UUID, book_id: UUID
     ) -> bool:
@@ -45,5 +57,17 @@ class LoanRepositoryPort(ABC):
 
         Returns:
             LoanEntity: Loan entity saved.
+        """
+        pass
+
+    @abstractmethod
+    async def update(self, entity: LoanEntity) -> LoanEntity:
+        """Update a loan entity.
+
+        Args:
+            entity (LoanEntity): Loan entity to be updated.
+
+        Returns:
+            LoanEntity: Loan entity updated.
         """
         pass
