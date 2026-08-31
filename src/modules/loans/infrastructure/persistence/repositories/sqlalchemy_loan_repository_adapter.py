@@ -36,6 +36,31 @@ class SQLAlchemyLoanRepositoryAdapter(LoanRepositoryPort):
         self._session = session
         self._logger = logger_factory_outbound.get_logger(__name__)
 
+    async def find_by_id(self, loan_id: UUID) -> LoanEntity | None:
+        """Find a loan by its identifier.
+
+        Args:
+            loan_id (UUID): Unique identifier of the loan.
+
+        Returns:
+            LoanEntity | None: The loan entity if found, otherwise None.
+
+        Raises:
+            LoanRepositoryException: If an error occurs while finding the loan.
+        """
+        try:
+            stmt = select(LoanModel).where(LoanModel.id == loan_id)
+            result = await self._session.execute(stmt)
+            model = result.scalar_one_or_none()
+            return LoanPersistenceMapper.to_entity(model) if model else None
+
+        except SQLAlchemyError as exc:
+            self._logger.error(
+                "Error while finding loan by id.",
+                error=str(exc),
+            )
+            raise LoanRepositoryException("Error while finding loan by id.") from exc
+
     async def exists_active_by_member_and_book(
         self, member_id: UUID, book_id: UUID
     ) -> bool:
@@ -134,3 +159,34 @@ class SQLAlchemyLoanRepositoryAdapter(LoanRepositoryPort):
             raise LoanRepositoryException(
                 "Database error during loan creation."
             ) from exc
+
+    async def update(self, entity: LoanEntity) -> LoanEntity:
+        """Updates a LoanEntity within the current transaction and returns it.
+
+        Args:
+            entity (LoanEntity): The loan entity to be updated.
+
+        Returns:
+            LoanEntity: The updated loan entity.
+
+        Raises:
+            LoanRepositoryException: If an error occurs while updating the loan.
+        """
+        try:
+            model = LoanPersistenceMapper.to_model(entity)
+            merged_model = await self._session.merge(model)
+            await self._session.flush()
+            await self._session.refresh(merged_model)
+            return LoanPersistenceMapper.to_entity(merged_model)
+
+        except IntegrityError as exc:
+            self._logger.error(
+                "Integrity error while updating loan.", exc_info=str(exc)
+            )
+            raise LoanRepositoryException(
+                "Loan already exists or violates constraints"
+            ) from exc
+
+        except SQLAlchemyError as exc:
+            self._logger.error("Database error while updating loan.", exc_info=str(exc))
+            raise LoanRepositoryException("Database error during loan update.") from exc
